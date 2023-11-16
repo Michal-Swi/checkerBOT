@@ -1,0 +1,22 @@
+{
+  "name": "checkerbot",
+  "version": "1.0.0",
+  "description": "Bot for adding and testing coding problems",
+  "main": "bot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Michal-Swi/checkerBOT.git"
+  },
+  "author": "Michal-Swi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Michal-Swi/checkerBOT/issues"
+  },
+  "homepage": "https://github.com/Michal-Swi/checkerBOT#readme",
+  "dependencies": {
+    "discord.js": "^14.14.1"
+  }
+}
