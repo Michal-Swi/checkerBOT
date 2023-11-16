@@ -10,3 +10,11 @@ bot.login(BOT_TOKEN);
 bot.on('ready', () => {
   console.log(`Logged in as ${bot.user.tag}!`);
 });
+
+bot.on('message', message => {
+	if (message.content == "!ping" || message.content == "!Ping") {
+		message.channel.send("Pong!");
+	}
+
+	
+});
