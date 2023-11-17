@@ -12,9 +12,20 @@ bot.on('ready', () => {
 });
 
 bot.on('message', message => {
-	if (message.content == "!ping" || message.content == "!Ping") {
-		message.channel.send("Pong!");
-	}
+	
+	//ignoring bot messages
+	if (message.author.bot) return;
+
+	//ignoring messages without '!' prefix
+	if (!message.content.startsWith('!')) return;
+
+
+	let command = message.content;
+	command.toLowerCase();
 
 	
+	switch (command) {
+		case "!e" || "!exercises":
+			message.channel.send("No exercises currently uploaded");
+	}
 });
