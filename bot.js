@@ -1,5 +1,6 @@
 const { Client } = require('discord.js');
 const fs = require('fs');
+const { functions } = require('./forExport.js');
 
 let token = fs.readFileSync('token.txt', 'utf8');
 
@@ -23,7 +24,7 @@ bot.on('message', message => {
 	let command = message.content;
 	command.toLowerCase();
 
-	
+	//main for commands
 	switch (command) {
 		case "!e" || "!exercises":
 			message.channel.send("No exercises currently uploaded");

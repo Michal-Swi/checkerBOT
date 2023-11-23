@@ -8,3 +8,37 @@ exec('ls -l',
              console.log('exec error: ' + error);
         }
     });
+
+function createPath(guildName) {
+    let s = "";
+    s += trim(guildName);
+    s += '.txt';
+
+    if (fileExists(s)) {
+        console.log("exists");
+    } else {
+         s = 'touch ' + s;
+        exec(s);
+    }
+}
+
+function fileExists(path) {
+    try {
+        if (fs.existsSync(path)) {
+            //file does exist
+            return true;
+        }
+
+        } catch(err) {
+            //file doesnt exist
+            console.error(err);
+        }
+    
+        return false;
+}
+
+//exporting functions to so bot.js can remain clean
+module.exports = {
+    fileExists,
+    createPath,
+};
