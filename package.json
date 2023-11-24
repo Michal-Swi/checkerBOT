@@ -17,6 +17,12 @@
   },
   "homepage": "https://github.com/Michal-Swi/checkerBOT#readme",
   "dependencies": {
-    "discord.js": "^14.14.1"
+    "child_process": "^1.0.2",
+    "discord.js": "^12.5.3",
+    "fs": "^0.0.1-security",
+    "path": "^0.12.7"
+  },
+  "engines": {
+    "node": "16.10.0"
   }
 }

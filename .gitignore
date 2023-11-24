@@ -2,3 +2,4 @@ token.txt
 node_modules/
 makefile
 servers/
+package-lock.json
