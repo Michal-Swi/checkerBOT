@@ -1,39 +1,60 @@
 const { Client } = require('discord.js');
 const fs = require('fs');
-const { functions } = require('./forExport.js');
+const functions = require('./forExport.js');
 const path = require('path');
+const sqlite3 = require('sqlite3').verbose();
 
 let token = fs.readFileSync('token.txt', 'utf8');
 const bot = new Client();
+
+const log = new sqlite3.Database('log.db');
+
+//making the log databse
+log.run(`
+  CREATE TABLE IF NOT EXISTS commands (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    userUsername TEXT,
+    command TEXT,
+    timestamp TEXT
+  )
+`);
+
+
+
+//I killed readability by this I know but I wanted the database to be in one file with the bot
+function logCommand(userUsername, command) {
+  const timestamp = new Date().toISOString();
+
+  log.run(
+    'INSERT INTO commands (userUsername, command, timestamp) VALUES (?, ?, ?)',
+    [userUsername, command, timestamp],
+    (err) => {
+      if (err) {
+        console.error('ERROR NOT FATAL: ', err);
+      } else {
+        console.log('LOG UPDATED: ', command);
+      }
+    }
+  );
+}
+
 
 
 const BOT_TOKEN = token;
 bot.login(BOT_TOKEN);
 
-
 bot.on('ready', () => {
   console.log(`Logged in as ${bot.user.tag}!`);
 });
-
-
-function isPDF(file) {
-    if (file[file.length - 1] == 'f' && file[file.length - 2] == 'd' 
-        && file[file.length - 3] == 'p' && file[file.length - 4] == '.') {
-        return true;
-    }
-    return false;
-}
 
 bot.on('message', message => {
 	
 	//ignoring bot messages
 	if (message.author.bot) return;
 
-	console.log(message.content);
-
 	//ignoring messages without '!' prefix
 	if (!message.content.startsWith('!')) return;
-
+	logCommand(message.author.username, message.content);
 
 	let command = message.content;
 	command.toLowerCase();
@@ -46,12 +67,19 @@ bot.on('message', message => {
 		} else if (message.attachments.size > 1) {
 			message.channel.send('One exercise can be uploaded at once');
 		} else if (message.attachments.size === 1) {
-			let file = message.attachments.first().name;
+			let file = message.attachments.first();
 
-			console.log(file);
+			if (file.size > 200000) {
+				message.channel.send('File size is too large');
+				return;
+			}
 
-			let i = isPDF(file);
-			console.log(i);
+			if (!functions.isPDF(file.name)) {
+				message.channel.send('Bot only accepts PDF files');
+				return;
+			}
+
+			message.channel.send('Uploading the exercise...');
 		}
 	}
 		
@@ -60,9 +88,11 @@ bot.on('message', message => {
 	switch (command) {
 		
 		//list of exercises
-		case "!e" || "!exercises":
+		case "!e":
 			message.channel.send("No exercises currently uploaded");
 			break;
-
+		case "!exercises":
+			message.channel.send("No exercises currently uploaded");
+			break;
 	}
 });

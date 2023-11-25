@@ -38,9 +38,31 @@ function createDir(guildId) {
     }
 }
 
+//bot only accepts pdf files
+function isPDF(file) {
+    if (file[file.length - 1] == 'f' && file[file.length - 2] == 'd' 
+        && file[file.length - 3] == 'p' && file[file.length - 4] == '.') {
+        return true;
+    }
+    return false;
+}
+
+//crucial for writing into json files
+function writeToFile(data, success, fail) {
+  fs.writeFile('savedData.json', JSON.stringify(data), function(error) {
+    if(error) { 
+        console.error(error);
+    } else {
+        if (success)
+          success();
+    }
+  });
+}
 
 //exporting functions to so bot.js can remain clean
 module.exports = {
     fileExists,
     createDir,
+    isPDF,
+    writeToFile,
 };
