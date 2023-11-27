@@ -21,6 +21,7 @@
     "discord.js": "^12.5.3",
     "fs": "^0.0.1-security",
     "path": "^0.12.7",
+    "request": "^2.88.2",
     "sqlite3": "^5.1.6"
   },
   "engines": {

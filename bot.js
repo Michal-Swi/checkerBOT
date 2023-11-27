@@ -2,42 +2,10 @@ const { Client } = require('discord.js');
 const fs = require('fs');
 const functions = require('./forExport.js');
 const path = require('path');
-const sqlite3 = require('sqlite3').verbose();
+const request = require('request');
 
 let token = fs.readFileSync('token.txt', 'utf8');
 const bot = new Client();
-
-const log = new sqlite3.Database('log.db');
-
-//making the log databse
-log.run(`
-  CREATE TABLE IF NOT EXISTS commands (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    userUsername TEXT,
-    command TEXT,
-    timestamp TEXT
-  )
-`);
-
-
-
-//I killed readability by this I know but I wanted the database to be in one file with the bot
-function logCommand(userUsername, command) {
-  const timestamp = new Date().toISOString();
-
-  log.run(
-    'INSERT INTO commands (userUsername, command, timestamp) VALUES (?, ?, ?)',
-    [userUsername, command, timestamp],
-    (err) => {
-      if (err) {
-        console.error('ERROR NOT FATAL: ', err);
-      } else {
-        console.log('LOG UPDATED: ', command);
-      }
-    }
-  );
-}
-
 
 
 const BOT_TOKEN = token;
@@ -54,11 +22,13 @@ bot.on('message', message => {
 
 	//ignoring messages without '!' prefix
 	if (!message.content.startsWith('!')) return;
-	logCommand(message.author.username, message.content);
 
 	let command = message.content;
 	command.toLowerCase();
 
+	//logging command
+	let date = new Date();
+	fs.appendFileSync('savedData.txt', message.author.username + ' ' + command + ' ' + date + '\n', 'UTF-8', {'flags': 'a'});
 
 	//uploading an exercise is not treated as a normal command
 	if (message.content.startsWith('!u') || message.content.startsWith('!upload')) {
@@ -79,7 +49,7 @@ bot.on('message', message => {
 				return;
 			}
 
-			message.channel.send('Uploading the exercise...');
+			functions.uploadExercise(file.url, file.name, message.guild.id);
 		}
 	}
 		

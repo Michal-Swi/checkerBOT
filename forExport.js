@@ -1,5 +1,9 @@
-const exec = require('child_process').exec;
+const { execSync } = require('child_process');
 const fs = require('fs');
+const request = require('request');
+
+const deafultDir = fs.readFileSync('deafultdir.txt', 'utf-8').toString();
+
 
 // exec('ls -l',
 //     function (error, stdout, stderr) {
@@ -26,18 +30,6 @@ function fileExists(path) {
         return false;
 }
 
-//making server directory for containing exercises used in a given server
-function createDir(guildId) {
-    let s = guildId;
-
-    if (fileExists(s)) {
-        console.log("exists");
-    } else {
-         s = 'mkdir ' + s;
-        exec(s);
-    }
-}
-
 //bot only accepts pdf files
 function isPDF(file) {
     if (file[file.length - 1] == 'f' && file[file.length - 2] == 'd' 
@@ -47,22 +39,53 @@ function isPDF(file) {
     return false;
 }
 
-//crucial for writing into json files
-function writeToFile(data, success, fail) {
-  fs.writeFile('savedData.json', JSON.stringify(data), function(error) {
-    if(error) { 
-        console.error(error);
-    } else {
-        if (success)
-          success();
+//for donwloading exercises
+function downloadExercise(url) {
+    request.get(url)
+        .on('error', console.error)
+        .pipe(fs.createWriteStream(url));
+}
+
+function returnToDeafultDir() {
+    execSync(deafultDir);
+}
+
+//for uploading exercises
+function uploadExercise(fileUrl, fileName, guildId) {
+    console.log("Switching dir to servers/");
+    process.chdir('servers/');
+
+    if (!fileExists(guildId)) {
+        console.log("Making guild directory");
+        execSync('mkdir ' + guildId); //making a new server directory 
     }
-  });
+
+    console.log("Switching dir to guild directory");
+    process.chdir(guildId + '/'); //go to the server dir
+
+    if (fileExists(fileName)) {
+        console.error('Exercise already exists');
+        returnToDeafultDir();
+        return false;
+    }
+
+    console.log("Making exercise directory");
+    execSync('mkdir ' + fileName);
+
+    console.log('Changing exercise directory to exercise: ', fileName);
+    process.chdir(fileName + '/');
+
+    downloadExercise(fileUrl);  
+    
+    returnToDeafultDir();
+
+    return true; 
 }
 
 //exporting functions to so bot.js can remain clean
 module.exports = {
     fileExists,
-    createDir,
     isPDF,
-    writeToFile,
+    downloadExercise,
+    uploadExercise,
 };
