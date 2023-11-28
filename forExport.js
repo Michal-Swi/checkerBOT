@@ -1,9 +1,28 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
-const request = require('request');
 
 const deafultDir = fs.readFileSync('deafultdir.txt', 'utf-8').toString();
 
+
+function returnToDeafultDir() {
+    process.chdir(deafultDir);
+}
+
+function downloadMake(url, fileName, guildId) {
+    const download = url + '\n' + fileName;
+
+    returnToDeafultDir();
+
+    console.log('writing to file');
+    fs.writeFileSync('input.txt', download);
+    
+    console.log('c++ with input');
+    execSync('./a.out input.txt');
+
+    console.log('moving the file');
+    execSync('mv ' + fileName + '.pdf ' + deafultDir + guildId + '/' + fileName);
+    returnToDeafultDir();
+}
 
 // exec('ls -l',
 //     function (error, stdout, stderr) {
@@ -39,24 +58,13 @@ function isPDF(file) {
     return false;
 }
 
-//for donwloading exercises
-function downloadExercise(url) {
-    request.get(url)
-        .on('error', console.error)
-        .pipe(fs.createWriteStream(url));
-}
-
-function returnToDeafultDir() {
-    execSync(deafultDir);
-}
-
 //for uploading exercises
 function uploadExercise(fileUrl, fileName, guildId) {
     console.log("Switching dir to servers/");
     process.chdir('servers/');
 
     if (!fileExists(guildId)) {
-        console.log("Making guild directory");
+        console.error("Making guild directory");
         execSync('mkdir ' + guildId); //making a new server directory 
     }
 
@@ -75,17 +83,18 @@ function uploadExercise(fileUrl, fileName, guildId) {
     console.log('Changing exercise directory to exercise: ', fileName);
     process.chdir(fileName + '/');
 
-    downloadExercise(fileUrl);  
-    
+    downloadMake(fileUrl, fileName, guildId);
+
     returnToDeafultDir();
 
     return true; 
 }
 
+uploadExercise('https://cdn.discordapp.com/attachments/987828161083482162/1179141800129208440/zadanie_Kalkulator.pdf?ex=6578b460&is=65663f60&hm=6c15ec2939b26c387f3b7df26d3cb9019484b664be554da1f124875179820260&', 'zadanie', 1);
+
 //exporting functions to so bot.js can remain clean
 module.exports = {
     fileExists,
     isPDF,
-    downloadExercise,
     uploadExercise,
 };

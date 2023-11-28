@@ -7,7 +7,6 @@ const request = require('request');
 let token = fs.readFileSync('token.txt', 'utf8');
 const bot = new Client();
 
-
 const BOT_TOKEN = token;
 bot.login(BOT_TOKEN);
 
