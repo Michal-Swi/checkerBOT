@@ -29,30 +29,6 @@ bot.on('message', message => {
 	let date = new Date();
 	fs.appendFileSync('savedData.txt', message.author.username + ' ' + command + ' ' + date + '\n', 'UTF-8', {'flags': 'a'});
 
-	//uploading an exercise is not treated as a normal command
-	if (message.content.startsWith('!u') || message.content.startsWith('!upload')) {
-		if (message.attachments.size === 0) {
-			message.channel.send('No exercise to upload');
-		} else if (message.attachments.size > 1) {
-			message.channel.send('One exercise can be uploaded at once');
-		} else if (message.attachments.size === 1) {
-			let file = message.attachments.first();
-
-			if (file.size > 200000) {
-				message.channel.send('File size is too large');
-				return;
-			}
-
-			if (!functions.isPDF(file.name)) {
-				message.channel.send('Bot only accepts PDF files');
-				return;
-			}
-
-			functions.uploadExercise(file.url, file.name, message.guild.id);
-		}
-	}
-		
-
 	//main for commands
 	switch (command) {
 		
@@ -62,6 +38,12 @@ bot.on('message', message => {
 			break;
 		case "!exercises":
 			message.channel.send("No exercises currently uploaded");
+			break;
+		case "!u":
+			functions.uploadCommand(message);
+			break;
+		case "!upload":
+			functions.uploadCommand(message);
 			break;
 	}
 });

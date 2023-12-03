@@ -3,6 +3,8 @@ const fs = require('fs');
 
 const deafultDir = fs.readFileSync('deafultdir.txt', 'utf-8').toString();
 
+//REMINDER make it a databse
+let delay = new Map();
 
 function returnToDeafultDir() {
     process.chdir(deafultDir);
@@ -20,7 +22,7 @@ function downloadMake(url, fileName, guildId) {
     execSync('./a.out input.txt');
 
     console.log('moving the file');
-    execSync('mv ' + fileName + '.pdf ' + deafultDir + guildId + '/' + fileName);
+    execSync('mv ' + fileName + '.pdf ' + deafultDir + 'servers/' + guildId + '/' + fileName);
     returnToDeafultDir();
 }
 
@@ -90,11 +92,61 @@ function uploadExercise(fileUrl, fileName, guildId) {
     return true; 
 }
 
-uploadExercise('https://cdn.discordapp.com/attachments/987828161083482162/1179141800129208440/zadanie_Kalkulator.pdf?ex=6578b460&is=65663f60&hm=6c15ec2939b26c387f3b7df26d3cb9019484b664be554da1f124875179820260&', 'zadanie', 1);
+//REMINDER make it a databse not a txt file idiot
+function isVeryfied(guildId) {
+    const guilds = fs.readFileSync('veryfiedGuilds.txt', 'utf-8');
+    
+    const guildsId = guilds.split('\n').map(Number)
+
+    let isTrue = false;
+
+    guildsId.forEach((value, key) => {
+        if (value == guildId) {
+            isTrue = true;
+            return;
+        }
+    });
+
+    if (isTrue) return true;
+    else return false;
+}
+
+function delayUploading(message, guildId) {  
+    if (isVeryfied(guildId)) {
+        return true;
+    }
+
+    let date = new Date();
+    console.log(date.getTime());
+}
+
+//handling !u and !upload command
+function uploadCommand(message) {
+    if (message.attachments.size === 0) {
+        message.channel.send('No exercise to upload');
+    } else if (message.attachments.size > 1) {
+        message.channel.send('One exercise can be uploaded at once');
+    } else if (message.attachments.size === 1) {
+        let file = message.attachments.first();
+
+        if (file.size > 200000) {
+            message.channel.send('File size is too large');
+            return;
+        }
+
+        if (!isPDF(file.name)) {
+             message.channel.send('Bot only accepts PDF files');
+            return;
+        }
+
+        uploadExercise(file.url, file.name, message.guild.id);
+    }
+}
 
 //exporting functions to so bot.js can remain clean
 module.exports = {
     fileExists,
     isPDF,
     uploadExercise,
+    uploadCommand,
 };
