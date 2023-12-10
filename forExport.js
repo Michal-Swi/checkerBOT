@@ -3,11 +3,51 @@ const fs = require('fs');
 
 const deafultDir = fs.readFileSync('deafultdir.txt', 'utf-8').toString();
 
-//REMINDER make it a databse
+//REMINDER make it a db
 let delay = new Map();
 
 function returnToDeafultDir() {
     process.chdir(deafultDir);
+}
+
+//REMINDER make it a db not a txt file idiot
+function isVeryfied(guildId) {
+    const guilds = fs.readFileSync('veryfiedGuilds.txt', 'utf-8');
+
+    const guildsId = guilds.split('\n').map(String);
+    
+    //guild id can go over the number limit I think
+    guildId = guildId.toString();
+
+    console.log(guildId, ' ', guildsId, ' ', guildsId.includes(guildId));
+
+    return guildsId.includes(guildId);
+}
+
+//anti - flood
+function delayUploading(message, guildId) {  
+    if (isVeryfied(guildId)) {
+        console.log('Guild is veryfied');
+        return true;
+    }
+    
+    const now = Date.now();
+    
+    if (!isNaN(delay[message.author.id])) {
+        if ((((now - delay[message.author.id]) / 1000) / 60) > 30) {
+            console.log('Delay passed, uploading...');
+            delay[message.author.id] = now;
+            return true;
+        } else {
+            console.log('Not enough time has passed');
+            console.log('Only', ((now - delay[message.author.id]) / 1000), 'seconds have passed');
+            return false;
+        }
+    }
+
+    console.log('First exercise uploaded, setting up the delay..., uploading...');
+    delay[message.author.id] = now;
+    return true;
 }
 
 function downloadMake(url, fileName, guildId) {
@@ -92,34 +132,6 @@ function uploadExercise(fileUrl, fileName, guildId) {
     return true; 
 }
 
-//REMINDER make it a databse not a txt file idiot
-function isVeryfied(guildId) {
-    const guilds = fs.readFileSync('veryfiedGuilds.txt', 'utf-8');
-    
-    const guildsId = guilds.split('\n').map(Number)
-
-    let isTrue = false;
-
-    guildsId.forEach((value, key) => {
-        if (value == guildId) {
-            isTrue = true;
-            return;
-        }
-    });
-
-    if (isTrue) return true;
-    else return false;
-}
-
-function delayUploading(message, guildId) {  
-    if (isVeryfied(guildId)) {
-        return true;
-    }
-
-    let date = new Date();
-    console.log(date.getTime());
-}
-
 //handling !u and !upload command
 function uploadCommand(message) {
     if (message.attachments.size === 0) {
@@ -149,4 +161,5 @@ module.exports = {
     isPDF,
     uploadExercise,
     uploadCommand,
+    delayUploading,
 };

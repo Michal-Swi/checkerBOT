@@ -40,9 +40,19 @@ bot.on('message', message => {
 			message.channel.send("No exercises currently uploaded");
 			break;
 		case "!u":
+			if (!functions.delayUploading(message, message.guild.id)) {
+				message.channel.send('Not enough time has passed since the last upload');
+				break;
+			}
+
 			functions.uploadCommand(message);
 			break;
 		case "!upload":
+			if (!functions.delayUploading(message, message.guild.id)) {
+				message.channel.send('Not enough time has passed since the last upload');
+				break;
+			}
+			
 			functions.uploadCommand(message);
 			break;
 	}
