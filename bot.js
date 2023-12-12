@@ -30,30 +30,21 @@ bot.on('message', message => {
 	fs.appendFileSync('savedData.txt', message.author.username + ' ' + command + ' ' + date + '\n', 'UTF-8', {'flags': 'a'});
 
 	//main for commands
-	switch (command) {
-		
-		//list of exercises
-		case "!e":
-			message.channel.send("No exercises currently uploaded");
-			break;
-		case "!exercises":
-			message.channel.send("No exercises currently uploaded");
-			break;
-		case "!u":
-			if (!functions.delayUploading(message, message.guild.id)) {
+	if (command === '!u' || command === '!upload') {
+		if (!functions.delayUploading(message, message.guild.id)) {
 				message.channel.send('Not enough time has passed since the last upload');
-				break;
-			}
+			} else {
+				const temp = functions.uploadCommand(message);
 
-			functions.uploadCommand(message);
-			break;
-		case "!upload":
-			if (!functions.delayUploading(message, message.guild.id)) {
-				message.channel.send('Not enough time has passed since the last upload');
-				break;
+				if (temp) {
+					message.channel.send('File uploaded correctly');
+				} else {
+					message.channel.send('Such file already exists');
+				}
 			}
-			
-			functions.uploadCommand(message);
-			break;
+	} else if (command === '!e' || command === '!exercises') {
+		const list = functions.listExercises(message.guild.id);
+		console.log(list);
+		message.channel.send(list);
 	}
 });

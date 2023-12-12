@@ -1,5 +1,6 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
+const fsAsync = require('fs').promises;
 
 const deafultDir = fs.readFileSync('deafultdir.txt', 'utf-8').toString();
 
@@ -100,6 +101,16 @@ function isPDF(file) {
     return false;
 }
 
+function deletePDF(fileName) {
+    let noPDF = '';
+
+    for (let i = 0; i < fileName.length - 4; i++) {
+        noPDF += fileName[i];
+    }
+
+    return noPDF;
+}
+
 //for uploading exercises
 function uploadExercise(fileUrl, fileName, guildId) {
     console.log("Switching dir to servers/");
@@ -113,6 +124,7 @@ function uploadExercise(fileUrl, fileName, guildId) {
     console.log("Switching dir to guild directory");
     process.chdir(guildId + '/'); //go to the server dir
 
+    fileName = deletePDF(fileName);
     if (fileExists(fileName)) {
         console.error('Exercise already exists');
         returnToDeafultDir();
@@ -155,6 +167,31 @@ function uploadCommand(message) {
     }
 }
 
+function listDir(guildId) {
+    try {
+        return fs.readdirSync(guildId);
+    } catch (err) {
+        console.error('Error');
+    }
+}
+
+function listExercises(guildId) {
+    console.log('Changing dir to servers');
+    process.chdir('servers/');
+
+    if (fileExists(guildId)) {
+        const list = listDir(guildId);
+        console.log(list);
+
+        returnToDeafultDir();
+
+        return list;
+    } else {
+        returnToDeafultDir();
+        return false;
+    }
+}
+
 //exporting functions to so bot.js can remain clean
 module.exports = {
     fileExists,
@@ -162,4 +199,5 @@ module.exports = {
     uploadExercise,
     uploadCommand,
     delayUploading,
+    listExercises,
 };
