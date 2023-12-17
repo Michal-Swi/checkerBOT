@@ -37,14 +37,25 @@ bot.on('message', message => {
 				const temp = functions.uploadCommand(message);
 
 				if (temp) {
-					message.channel.send('File uploaded correctly');
+					message.channel.send('File uploaded correctly!');
 				} else {
 					message.channel.send('Such file already exists');
 				}
 			}
 	} else if (command === '!e' || command === '!exercises') {
 		const list = functions.listExercises(message.guild.id);
-		console.log(list);
-		message.channel.send(list);
+		if (list === false || list === undefined) {
+			message.channel.send('what(): Exercises?');
+		} else {
+			let send = 'Exercises currently uploaded: \n';
+
+			for (let i = 0; i < list.length; i++) {
+				send += (i + 1) + '. ';
+				send += list[i]; 
+				send += '\n';
+			}
+
+			message.channel.send(send);
+		}
 	}
 });
