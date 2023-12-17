@@ -14,6 +14,41 @@ bot.on('ready', () => {
   console.log(`Logged in as ${bot.user.tag}!`);
 });
 
+
+async function makeSend(list, message) {
+   let send = 'Exercises currently uploaded: \n';
+
+  for (let i = 0; i < list.length; i++) {
+    send += (i + 1) + '. ';
+    send += list[i]; 
+    send += '\n';
+  }
+    
+  message.channel.send(send);   
+}
+
+async function upload(message) {
+	if (!functions.delayUploading(message, message.guild.id)) {
+		message.channel.send('Not enough time has passed since the last upload');
+	} else {
+		const temp = functions.uploadCommand(message);
+
+		if (temp == 4) {
+			message.channel.send('File uploaded correctly!');
+		} else if (temp == 5) {
+			message.channel.send('Such file already exists');
+		}
+	}
+}
+
+async function uploadTemplate(message) {
+	if (message.attachments.size !== 1) {
+		message.channel.send('The correct number of attachment is one.');
+	}
+
+	console.log(functions.isCode(message));
+}
+
 bot.on('message', message => {
 	
 	//ignoring bot messages
@@ -31,31 +66,15 @@ bot.on('message', message => {
 
 	//main for commands
 	if (command === '!u' || command === '!upload') {
-		if (!functions.delayUploading(message, message.guild.id)) {
-				message.channel.send('Not enough time has passed since the last upload');
-			} else {
-				const temp = functions.uploadCommand(message);
-
-				if (temp) {
-					message.channel.send('File uploaded correctly!');
-				} else {
-					message.channel.send('Such file already exists');
-				}
-			}
+		upload(message);
 	} else if (command === '!e' || command === '!exercises') {
 		const list = functions.listExercises(message.guild.id);
 		if (list === false || list === undefined) {
 			message.channel.send('what(): Exercises?');
 		} else {
-			let send = 'Exercises currently uploaded: \n';
-
-			for (let i = 0; i < list.length; i++) {
-				send += (i + 1) + '. ';
-				send += list[i]; 
-				send += '\n';
-			}
-
-			message.channel.send(send);
+			makeSend(list, message);
 		}
+	} else if (command === '!ut' || command == '!uploadtemplate') {
+		uploadTemplate(message);
 	}
 });

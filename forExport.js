@@ -148,22 +148,27 @@ function uploadExercise(fileUrl, fileName, guildId) {
 function uploadCommand(message) {
     if (message.attachments.size === 0) {
         message.channel.send('No exercise to upload');
+        return 0;
     } else if (message.attachments.size > 1) {
         message.channel.send('One exercise can be uploaded at once');
+        return 1;
     } else if (message.attachments.size === 1) {
         let file = message.attachments.first();
 
         if (file.size > 200000) {
             message.channel.send('File size is too large');
-            return;
+            return 2;
         }
 
         if (!isPDF(file.name)) {
-             message.channel.send('Bot only accepts PDF files');
-            return;
+            message.channel.send('Bot only accepts PDF files');
+            return 3;
         }
 
-        uploadExercise(file.url, file.name, message.guild.id);
+        const exists = uploadExercise(file.url, file.name, message.guild.id);
+        if (!exists) return 5;
+
+        return 4;
     }
 }
 
@@ -192,6 +197,23 @@ function listExercises(guildId) {
     }
 }
 
+function isCode(message) {
+    const acceptedFileExtensions = ['cpp'];
+
+    let s;
+
+    console.log(message.attachments.first().url, ' ', message.attachments.first().size, ' ', message.attachments.first().name);
+    for (let i = message.attachments.first().size - 1; i >= 0; i--) {
+        if (message.attachments.first()[i] === '.') return s;
+        s = message.attachments.first()[i] + s;
+    }
+
+    console.log(message.content, ' ', s);
+
+    const r = acceptedFileExtensions.includes(s);
+    console.log(r);
+}
+
 //exporting functions to so bot.js can remain clean
 module.exports = {
     fileExists,
@@ -200,4 +222,5 @@ module.exports = {
     uploadCommand,
     delayUploading,
     listExercises,
+    isCode,
 };
