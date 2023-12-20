@@ -11,6 +11,17 @@ function returnToDeafultDir() {
     process.chdir(deafultDir);
 }
 
+function readExercise(guildId, exerciseName) {
+    process.chdir('servers/');
+    process.chdir(guildId + '/');
+    process.chdir(exerciseName);
+
+    const exercise = fs.readFileSync(exerciseName);
+    returnToDeafultDir();
+
+    return exercise;
+}
+
 //REMINDER make it a db not a txt file idiot
 function isVeryfied(guildId) {
     const guilds = fs.readFileSync('veryfiedGuilds.txt', 'utf-8');
@@ -137,8 +148,7 @@ function uploadExercise(fileUrl, fileName, guildId) {
     console.log('Changing exercise directory to exercise: ', fileName);
     process.chdir(fileName + '/');
 
-    downloadMake(fileUrl, fileName, guildId);
-
+    execSync('echo "' + fileUrl + '" >> ' + fileName);
     returnToDeafultDir();
 
     return true; 
@@ -200,18 +210,46 @@ function listExercises(guildId) {
 function isCode(message) {
     const acceptedFileExtensions = ['cpp'];
 
-    let s;
+    const s = message.attachments.first().name;
+    let fileExtension = '';
 
-    console.log(message.attachments.first().url, ' ', message.attachments.first().size, ' ', message.attachments.first().name);
-    for (let i = message.attachments.first().size - 1; i >= 0; i--) {
-        if (message.attachments.first()[i] === '.') return s;
-        s = message.attachments.first()[i] + s;
+    for (let i = s.length - 1; i >= 0; i--) {
+        if (s[i] === '.') break;
+        fileExtension = s[i] + fileExtension;
     }
 
-    console.log(message.content, ' ', s);
+    console.log(fileTypeFromFile(message.attributes.first()));
 
-    const r = acceptedFileExtensions.includes(s);
-    console.log(r);
+    return acceptedFileExtensions.includes(fileExtension);
+}
+
+//name without the previous command and spaces are invalid
+function fileName(message) {
+    let name = '';
+
+    let add = false;
+    for (let i = 0; i < message.content.length; i++) {
+        if (!add && message.content[i] === ' ') {
+            add = true;
+        } else if (add && message.content[i] !== ' ') {
+            name += message.content[i];
+        } else if (add && message.content[i] === ' ') {
+            return false;
+        }
+    }
+
+    return name;
+}
+
+function exerciseExists(fileName, guildId) {
+    process.chdir('servers/');
+    process.chdir(guildId + '/');
+
+    const ret = fileExists(fileName);
+
+    returnToDeafultDir();
+
+    return ret;
 }
 
 //exporting functions to so bot.js can remain clean
@@ -223,4 +261,8 @@ module.exports = {
     delayUploading,
     listExercises,
     isCode,
+    fileName,
+    exerciseExists,
+    returnToDeafultDir,
+    readExercise,
 };

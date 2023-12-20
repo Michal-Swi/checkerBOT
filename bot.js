@@ -1,3 +1,5 @@
+//DOWNLOAD LINKS FOR QUESTIONS NOT QUESTIONS
+
 const { Client } = require('discord.js');
 const fs = require('fs');
 const functions = require('./forExport.js');
@@ -13,7 +15,6 @@ bot.login(BOT_TOKEN);
 bot.on('ready', () => {
   console.log(`Logged in as ${bot.user.tag}!`);
 });
-
 
 async function makeSend(list, message) {
    let send = 'Exercises currently uploaded: \n';
@@ -44,13 +45,34 @@ async function upload(message) {
 async function uploadTemplate(message) {
 	if (message.attachments.size !== 1) {
 		message.channel.send('The correct number of attachment is one.');
+		return;
 	}
 
-	console.log(functions.isCode(message));
+	console.log(functions.isCode(message), ' ', message.attachments.size);
 }
 
-bot.on('message', message => {
-	
+async function printExercise(message) {
+	const directory = message.guild.id;
+	const fileName = functions.fileName(message);
+
+	if (!fileName) {
+		message.channel.send('Invalid file name');
+		return;
+	}
+
+	if (!functions.exerciseExists(fileName, message.guild.id)) {
+		message.channel.send('Exercise does not exist');
+		return;
+	}
+
+	let exercise = '<@' + message.author.id + '> exercise: ' + fileName + '\n';
+	exercise += functions.readExercise(message.guild.id, fileName);
+
+	message.channel.send(exercise);
+}
+
+async function commandHandler(message) {
+
 	//ignoring bot messages
 	if (message.author.bot) return;
 
@@ -74,7 +96,15 @@ bot.on('message', message => {
 		} else {
 			makeSend(list, message);
 		}
-	} else if (command === '!ut' || command == '!uploadtemplate') {
+
+	} else if (command === '!ut' || command === '!uploadtemplate') {
 		uploadTemplate(message);
-	}
+	
+	} else if (command.startsWith('!printexercise') || command.startsWith('!pe')) {
+		printExercise(message);
+	} else if (startswith('!') || command.startsWith(''))
+}
+
+bot.on('message', message => {
+	commandHandler(message);
 });
