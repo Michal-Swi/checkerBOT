@@ -21,7 +21,7 @@ or
 
 ### In order to be able to download an exercise 
 ```
-!print exercise [exercise_name]
+!printexercise [exercise_name]
 !pe [exercise_name]
 ```
 
