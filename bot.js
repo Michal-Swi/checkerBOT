@@ -1,5 +1,3 @@
-//DOWNLOAD LINKS FOR QUESTIONS NOT QUESTIONS
-
 const { Client } = require('discord.js');
 const fs = require('fs');
 const functions = require('./forExport.js');
@@ -71,6 +69,18 @@ async function printExercise(message) {
 	message.channel.send(exercise);
 }
 
+async function deleteExercise(message) {
+	const exercise = functions.fileName(message);
+
+	if (!functions.exerciseExists(exercise, message.guild.id)) {
+		message.channel.send('No exercise to delete');
+		return;
+	}
+
+	functions.deleteDirectory(exercise, message);
+	message.channel.send('File deleted correctly');
+}
+
 async function commandHandler(message) {
 
 	//ignoring bot messages
@@ -91,6 +101,8 @@ async function commandHandler(message) {
 		upload(message);
 	} else if (command === '!e' || command === '!exercises') {
 		const list = functions.listExercises(message.guild.id);
+		functions.returnToDeafultDir();
+
 		if (list === false || list === undefined) {
 			message.channel.send('what(): Exercises?');
 		} else {
@@ -102,7 +114,10 @@ async function commandHandler(message) {
 	
 	} else if (command.startsWith('!printexercise') || command.startsWith('!pe')) {
 		printExercise(message);
-	} else if (startswith('!') || command.startsWith(''))
+
+	} else if (command.startsWith('!de') || command.startsWith('!deleteexercise')) {
+		deleteExercise(message);
+	}
 }
 
 bot.on('message', message => {

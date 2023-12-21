@@ -252,6 +252,16 @@ function exerciseExists(fileName, guildId) {
     return ret;
 }
 
+async function deleteDirectory(directory, message) {
+    returnToDeafultDir();
+    
+    process.chdir('servers/');
+    process.chdir(message.guild.id + '/');
+
+    execSync('rm -rf ' + directory);
+    returnToDeafultDir();
+}
+
 //exporting functions to so bot.js can remain clean
 module.exports = {
     fileExists,
@@ -265,4 +275,5 @@ module.exports = {
     exerciseExists,
     returnToDeafultDir,
     readExercise,
+    deleteDirectory,
 };
