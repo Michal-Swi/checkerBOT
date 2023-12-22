@@ -42,11 +42,18 @@ async function upload(message) {
 
 async function uploadTemplate(message) {
 	if (message.attachments.size !== 1) {
-		message.channel.send('The correct number of attachment is one.');
+		message.channel.send('The correct number of attachment is one');
 		return;
 	}
 
-	console.log(functions.isCode(message), ' ', message.attachments.size);
+	if (!functions.isCode(message)) {
+		message.channel.send('Unsupported attachment type');
+		return;
+	}
+
+	
+	
+	message.channel.sendMessage('Template uploaded successfully');
 }
 
 async function printExercise(message) {

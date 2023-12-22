@@ -1,6 +1,5 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
-const fsAsync = require('fs').promises;
 
 const deafultDir = fs.readFileSync('deafultdir.txt', 'utf-8').toString();
 
@@ -62,7 +61,19 @@ function delayUploading(message, guildId) {
     return true;
 }
 
-function downloadMake(url, fileName, guildId) {
+function messageExtension(file) {
+    let extension = '';
+
+    for (let i = file.length - 1; i >= 0; i--) {
+        if (file[i] !== '.') {
+            extension = file[i] + extension;
+        } else if (file[i] === '.') {
+            return extension;
+        }
+    }
+}
+
+function downloadMake(url, fileName, guildId, extension) {
     const download = url + '\n' + fileName;
 
     returnToDeafultDir();
@@ -74,7 +85,7 @@ function downloadMake(url, fileName, guildId) {
     execSync('./a.out input.txt');
 
     console.log('moving the file');
-    execSync('mv ' + fileName + '.pdf ' + deafultDir + 'servers/' + guildId + '/' + fileName);
+    execSync('mv ' + fileName + extension + ' ' + deafultDir + 'servers/' + guildId + '/' + fileName);
     returnToDeafultDir();
 }
 
@@ -154,9 +165,25 @@ function uploadExercise(fileUrl, fileName, guildId) {
     return true; 
 }
 
+function specialCharcaters(fileName) {
+    acceptedCharacters = ['_', '.'];
+
+    fileName.forEach(char => {
+        if (char.toLowerCase() !== char.toUpperCase() && 
+            !acceptedCharacters.includes(char)) {
+            return false;
+        }
+    });
+
+    return true;
+}
+
 //handling !u and !upload command
 function uploadCommand(message) {
-    if (message.attachments.size === 0) {
+    if (!specialCharacters(message.attachments.first().name)) {
+        message.channel.send('Only accepted special characters are . and /');
+        return 6;
+    } else if (message.attachments.size === 0) {
         message.channel.send('No exercise to upload');
         return 0;
     } else if (message.attachments.size > 1) {
@@ -211,16 +238,9 @@ function isCode(message) {
     const acceptedFileExtensions = ['cpp'];
 
     const s = message.attachments.first().name;
-    let fileExtension = '';
+    const extension = messageExtension(s);
 
-    for (let i = s.length - 1; i >= 0; i--) {
-        if (s[i] === '.') break;
-        fileExtension = s[i] + fileExtension;
-    }
-
-    console.log(fileTypeFromFile(message.attributes.first()));
-
-    return acceptedFileExtensions.includes(fileExtension);
+    return acceptedFileExtensions.includes(extension);
 }
 
 //name without the previous command and spaces are invalid
@@ -262,6 +282,10 @@ async function deleteDirectory(directory, message) {
     returnToDeafultDir();
 }
 
+async function testExercise() {
+    
+}
+
 //exporting functions to so bot.js can remain clean
 module.exports = {
     fileExists,
@@ -276,4 +300,6 @@ module.exports = {
     returnToDeafultDir,
     readExercise,
     deleteDirectory,
+    downloadMake,
+    messageExtension,
 };
