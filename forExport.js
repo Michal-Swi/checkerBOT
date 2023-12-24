@@ -165,12 +165,12 @@ function uploadExercise(fileUrl, fileName, guildId) {
     return true; 
 }
 
-function specialCharcaters(fileName) {
+function specialCharacters(fileName) {
     acceptedCharacters = ['_', '.'];
 
-    fileName.forEach(char => {
-        if (char.toLowerCase() !== char.toUpperCase() && 
-            !acceptedCharacters.includes(char)) {
+    [...fileName].forEach(character => {
+        if (character.toLowerCase() !== character.toUpperCase() && 
+            !acceptedCharacters.includes(character)) {
             return false;
         }
     });

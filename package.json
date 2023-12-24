@@ -21,6 +21,7 @@
     "discord.js": "^12.5.3",
     "file-type": "^18.7.0",
     "fs": "^0.0.1-security",
+    "is-odd": "^3.0.1",
     "path": "^0.12.7",
     "prompt-sync": "^4.2.0",
     "request": "^2.88.2",
