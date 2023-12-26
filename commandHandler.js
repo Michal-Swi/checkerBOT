@@ -1,7 +1,6 @@
 const functions = require('./forExport.js');
 const fs = require('fs');
 
-
 async function makeSend(list, message) {
    let send = 'Exercises currently uploaded: \n';
 
