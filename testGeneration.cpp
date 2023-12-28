@@ -23,13 +23,20 @@ string s;
 
 ofstream tests("makefile");
 unordered_set<string> datatypes = {"INT", "STRING", "BOOL", "SHORT", "LL", "ULL", "CHAR"};
-unordered_set<char> specialSymbols = {'$', ':', '*', '-'};
+unordered_set<char> specialSymbols = {'$', ':', '*', '-', '/'};
+unordered_map<string, pair<string, string>> variables;
 
 string trim(string &s) {
 	string sol;
 
 	for (auto ch : s) isalpha(ch) ? sol += ch : sol += "";
 
+	return sol;
+}
+
+string makeUppercase(string &s) {
+	string sol;
+	for (auto ch : s) sol += toupper(ch);
 	return sol;
 }
 
@@ -62,26 +69,107 @@ string maxMin(string dataType) {
 	} else return "Invalid_Datatype";
 }
 
-//returns the full input from one line in the file
-string getValue(string dataType, vector<string> &conditions) {
+//returns amount of variables from conditions
+long long getAmount(string amount) {
+	long long ret = -1;
+
+	try {
+		ret = stoll(amount);
+	} catch (...) {
+		return -1;
+	}
+
+	bool nameAlready = false;
+
+	//n for nothing 
+	char operation = 'n';
+	string name;
+
+	for (auto ch : amount) {
+		if (nameAlready) {
+
+			if (ch == ';') break; //end of name 
+
+			//variable names can be only letters
+			if (!isalpha(ch)) {
+				return Syntax_Error;
+			}
+
+			name += ch;
+		}
+
+		//for some godforsaken reason ASCII for whitespace is 13, well its not but ehh
+		else if (!nameAlready and (ch == ' ' or int(ch) == 13)) continue;
+		else if (!nameAlready and (ch == '$')) { //$ is how many variables are necessarys 
+			operation = ch;
+			nameAlready = true;
+		} else {
+			//syntax error or smth
+			break;
+		}
+	}
+
+	//-1 is obviously invalid amount of wanted variables
+
+	try {
+		ret = stoll(variables[name].second);
+	} catch (...) {
+		return -1;
+	}
+
+	if (operation == 'n') return ret;
+	else return -1;
+}
+
+//same as getValue but for strings and chars
+pair<string, bool> letterTypeValues(bool isString, vector<string> &conditions) {
+	if (conditions.empty()) { //conditions are necessary for letter types
+		return make_pair("", false);
+	}
+
+	
+}
+
+//returns the first (if more than one is needed) generated variable
+pair<string, bool> getValue(string dataType, vector<string> &conditions) {
 	string value;
+
+	if (dataType == "STRING" or dataType == "CHAR") {
+		return letterTypeValues(dataType == "STRING" ? 1 : 0, conditions);
+	}
 
 	if (conditions.empty()) {
 		//no conditions generate based off the datatype
-		return maxMin(dataType);
+		auto generated = maxMin(dataType);
+		test << generated + " ";
+
+		return make_pair(generated, true);
 	}
 
-	return "";
+
+	auto amount = getAmount(conditions[0]);
+	if (amount < 1) {
+		return make_pair("", false);
+	}
+
+	while (amount--) {
+
+	}
+
+	return make_pair("", false);
 }
 
 //3 loops but still O(n) where n is the input length
 ErrorStatus generateTestCase(int &iterator) {
-	unordered_map<string, pair<string, string>> variables;
+	tests << "test" + iterator + ':' + '\n';
+	tests << "echo: ";
 
 	string sol;
 
 	for (int i = 0; i < input.size(); i++) {
 		string temp = input[i];
+
+		temp = makeUppercase(temp);
 
 		string dataType;
 		bool space = false;
@@ -149,9 +237,14 @@ ErrorStatus generateTestCase(int &iterator) {
 		// for (auto s : conditions) cout << s << endl;
 
 		variables[name].first = dataType;
-		variables[name].second = getValue(dataType, conditions);
+		pair<string, bool> value = getValue(dataType, conditions);
+
+		if (!value.second) return Syntax_Error;
+		variables[name].second = value.first;
 
 	} //end of i loop
+
+	variables.clear();
 
 	return No_Error;
 }
