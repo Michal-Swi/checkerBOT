@@ -23,7 +23,7 @@ string s;
 
 ofstream tests("makefile");
 unordered_set<string> datatypes = {"INT", "STRING", "BOOL", "SHORT", "LL", "ULL", "CHAR"};
-unordered_set<char> specialSymbols = {'$', ':', '*', '-', '/'};
+unordered_set<char> specialSymbols = {'$', ':', '*', '-', '/', '>', '<', '='};
 unordered_map<string, pair<string, string>> variables;
 
 string trim(string &s) {
@@ -76,8 +76,10 @@ long long getAmount(string amount) {
 	try {
 		ret = stoll(amount);
 	} catch (...) {
-		return -1;
+		//not a number
 	}
+
+	if (ret != -1) return ret;
 
 	bool nameAlready = false;
 
@@ -92,7 +94,7 @@ long long getAmount(string amount) {
 
 			//variable names can be only letters
 			if (!isalpha(ch)) {
-				return Syntax_Error;
+				return -1;
 			}
 
 			name += ch;
@@ -112,22 +114,52 @@ long long getAmount(string amount) {
 	//-1 is obviously invalid amount of wanted variables
 
 	try {
-		ret = stoll(variables[name].second);
+		ret = stoll(variables[name].second); 
 	} catch (...) {
-		return -1;
+		return -1; //variable doesnt contain a number
 	}
 
-	if (operation == 'n') return ret;
+	if (operation == '$') return ret;
 	else return -1;
 }
 
+#define letterTypeValuesError return make_pair("", false)
+
 //same as getValue but for strings and chars
 pair<string, bool> letterTypeValues(bool isString, vector<string> &conditions) {
-	if (conditions.empty()) { //conditions are necessary for letter types
-		return make_pair("", false);
+	if (conditions.empty() or conditions.size() < 2) { //conditions are necessary for letter types
+		letterTypeValuesError;
 	}
 
-	
+	auto amount = getAmount(conditions[0]);
+	if (amount <= 0) {
+		letterTypeValuesError; //cant generate 0 or less strings
+	}
+
+	vector<string> generatingConditions; //actuall generating conditions 1-10 etc.
+
+	for (int i = 1; i < conditions.size(); i++) {
+		string temp = conditions[i];
+
+		if (isalpha(temp[0])) {
+			if (isalpha(temp[1])) letterTypeValuesError;
+
+			generatingConditions.push_back(temp);
+		}
+
+		if (isdigit(temp[0])) {
+			generatingConditions.push_back(temp);
+		}
+	}
+
+	int charactersIterator = 0;
+	vector<char> characters;
+
+	for (int i = 0; i < generatingConditions.size(); i++) {
+		if (isdigit(generatingConditions[i][0])) {
+			auto leftSide = 
+		}
+	}
 }
 
 //returns the first (if more than one is needed) generated variable
@@ -135,25 +167,30 @@ pair<string, bool> getValue(string dataType, vector<string> &conditions) {
 	string value;
 
 	if (dataType == "STRING" or dataType == "CHAR") {
-		return letterTypeValues(dataType == "STRING" ? 1 : 0, conditions);
+		return letterTypeValues(dataType == "STRING" ? true : false, conditions);
 	}
 
 	if (conditions.empty()) {
 		//no conditions generate based off the datatype
 		auto generated = maxMin(dataType);
-		test << generated + " ";
+		tests << generated + " ";
 
 		return make_pair(generated, true);
 	}
 
 
 	auto amount = getAmount(conditions[0]);
-	if (amount < 1) {
+	if (amount <= 0) {
 		return make_pair("", false);
 	}
 
-	while (amount--) {
+	vector<char> wantedCharacters; //characters used for generation
+	for (int i = 1; i < conditions.size(); i++) {
+		string temp = conditions[i];
 
+		if (isdigit(temp[0])) {
+			
+		}
 	}
 
 	return make_pair("", false);
