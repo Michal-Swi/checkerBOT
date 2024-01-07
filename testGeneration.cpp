@@ -18,13 +18,58 @@ enum ErrorStatus {
 	Invalid_Datatype = 5,
 };
 
-vector<string> input;
-string s;
+class VariableGeneration {
+public:
+	void setName(string name) {
+		this->name = name;
+	}
 
-ofstream tests("makefile");
-unordered_set<string> datatypes = {"INT", "STRING", "BOOL", "SHORT", "LL", "ULL", "CHAR"};
-unordered_set<char> specialSymbols = {'$', ':', '*', '-', '/', '>', '<', '='};
-unordered_map<string, pair<string, string>> variables;
+	void setDataType(string dataType) {
+		this->dataType = dataType;
+	}
+
+	void setValue(string value) {
+		this->value = value;
+	}
+
+	void printName() {
+		cout << name;
+	}
+
+	~VariableGeneration() {
+		cout << "AAAAAAAAAA";
+	}
+
+private:
+	string name;
+	string dataType;
+	string value;
+};
+
+class VariableGenerationBuilder : VariableGeneration {
+public:
+	VariableGeneration &setName(string name) {
+		variable.setName(name);
+		return *this;
+	}									
+
+	VariableGeneration &setDataType(string dataType) {
+		variable.setDataType(dataType);
+		return *this;
+	}
+
+	VariableGeneration &setValue(string value) {
+		variable.setValue(value);
+		return *this;
+	}
+
+	VariableGeneration build() {
+		return variable;
+	}
+
+private:
+	VariableGeneration variable;
+};
 
 string trim(string &s) {
 	string sol;
@@ -33,6 +78,14 @@ string trim(string &s) {
 
 	return sol;
 }
+
+// vector<string> input;
+// string s;
+
+// ofstream tests("makefile");
+// unordered_set<string> datatypes = {"INT", "STRING", "BOOL", "SHORT", "LL", "ULL", "CHAR"};
+// unordered_set<char> specialSymbols = {'$', ':', '*', '-'};
+// unordered_map<string, pair<string, string>> variables;
 
 string makeUppercase(string &s) {
 	string sol;
@@ -69,265 +122,20 @@ string maxMin(string dataType) {
 	} else return "Invalid_Datatype";
 }
 
-//returns amount of variables from conditions
-long long getAmount(string amount) {
-	long long ret = -1;
+string s;
 
-	try {
-		ret = stoll(amount);
-	} catch (...) {
-		//not a number
-	}
-
-	if (ret != -1) return ret;
-
-	bool nameAlready = false;
-
-	//n for nothing 
-	char operation = 'n';
-	string name;
-
-	for (auto ch : amount) {
-		if (nameAlready) {
-
-			if (ch == ';') break; //end of name 
-
-			//variable names can be only letters
-			if (!isalpha(ch)) {
-				return -1;
-			}
-
-			name += ch;
-		}
-
-		//for some godforsaken reason ASCII for whitespace is 13, well its not but ehh
-		else if (!nameAlready and (ch == ' ' or int(ch) == 13)) continue;
-		else if (!nameAlready and (ch == '$')) { //$ is how many variables are necessarys 
-			operation = ch;
-			nameAlready = true;
-		} else {
-			//syntax error or smth
-			break;
-		}
-	}
-
-	//-1 is obviously invalid amount of wanted variables
-
-	try {
-		ret = stoll(variables[name].second); 
-	} catch (...) {
-		return -1; //variable doesnt contain a number
-	}
-
-	if (operation == '$') return ret;
-	else return -1;
-}
-
-#define letterTypeValuesError return make_pair("", false)
-
-//same as getValue but for strings and chars
-pair<string, bool> letterTypeValues(bool isString, vector<string> &conditions) {
-	if (conditions.empty() or conditions.size() < 2) { //conditions are necessary for letter types
-		letterTypeValuesError;
-	}
-
-	auto amount = getAmount(conditions[0]);
-	if (amount <= 0) {
-		letterTypeValuesError; //cant generate 0 or less strings
-	}
-
-	vector<string> generatingConditions; //actuall generating conditions 1-10 etc.
-
-	for (int i = 1; i < conditions.size(); i++) {
-		string temp = conditions[i];
-
-		if (isalpha(temp[0])) {
-			if (isalpha(temp[1])) letterTypeValuesError;
-
-			generatingConditions.push_back(temp);
-		}
-
-		if (isdigit(temp[0])) {
-			generatingConditions.push_back(temp);
-		}
-	}
-
-	int charactersIterator = 0;
-	vector<char> characters;
-
-	for (int i = 0; i < generatingConditions.size(); i++) {
-		if (isdigit(generatingConditions[i][0])) {
-			auto leftSide = 
-		}
-	}
-}
-
-//returns the first (if more than one is needed) generated variable
-pair<string, bool> getValue(string dataType, vector<string> &conditions) {
-	string value;
-
-	if (dataType == "STRING" or dataType == "CHAR") {
-		return letterTypeValues(dataType == "STRING" ? true : false, conditions);
-	}
-
-	if (conditions.empty()) {
-		//no conditions generate based off the datatype
-		auto generated = maxMin(dataType);
-		tests << generated + " ";
-
-		return make_pair(generated, true);
-	}
-
-
-	auto amount = getAmount(conditions[0]);
-	if (amount <= 0) {
-		return make_pair("", false);
-	}
-
-	vector<char> wantedCharacters; //characters used for generation
-	for (int i = 1; i < conditions.size(); i++) {
-		string temp = conditions[i];
-
-		if (isdigit(temp[0])) {
-			
-		}
-	}
-
-	return make_pair("", false);
-}
-
-//3 loops but still O(n) where n is the input length
-ErrorStatus generateTestCase(int &iterator) {
-	tests << "test" + iterator + ':' + '\n';
-	tests << "echo: ";
-
-	string sol;
-
-	for (int i = 0; i < input.size(); i++) {
-		string temp = input[i];
-
-		temp = makeUppercase(temp);
-
-		string dataType;
-		bool space = false;
-
-		int j = 0;
-
-		//getting the data type
-		for (j; j < temp.length(); j++) {
-			if (temp[j] != ' ') {
-				dataType += temp[j];
-			} else if (temp[j] == ' ') {
-				break;
-			}
-		}
-
-		//deleting unwanted characters
-		dataType = trim(dataType);
-
-		if (datatypes.find(dataType) == datatypes.end()) {
-			return Invalid_Datatype;
-		}
-
-		space = false;
-		string name;
-
-		//getting the name of the variable
-		for (j; j < temp.length(); j++) {
-			if (temp[j] != ' ') {
-				space = true;
-			}
-			
-			if (space and isalpha(temp[j])) {
-				name += temp[j];
-			} else if (space and !isalpha(temp[j])) {
-				break;
-			}
-		}
-
-		//deleting unwanted characters (non letters) proboably useless but better safe than sorry!
-		name = trim(name);
-		++j;
-
-		vector<string> conditions;
-		string condition;
-
-		for (j; j < temp.size(); j++) {
-
-			if (temp[j] == ' ' or int(temp[j]) == 13) {
-				if (j + 1 == temp.size()) break;
-			} if (isalpha(temp[j]) or isdigit(temp[j]) 
-				or specialSymbols.find(temp[j]) != specialSymbols.end()) {
-
-				condition += temp[j];
-			} else if (temp[j] == ';') {
-				conditions.push_back(condition);
-				condition = "";
-			} else {
-				return Syntax_Error;
-			}
-		}
-
-		//last one never gets pushed back
-		conditions.push_back(condition);
-
-		// for (auto s : conditions) cout << s << endl;
-
-		variables[name].first = dataType;
-		pair<string, bool> value = getValue(dataType, conditions);
-
-		if (!value.second) return Syntax_Error;
-		variables[name].second = value.first;
-
-	} //end of i loop
-
-	variables.clear();
-
-	return No_Error;
-}
-
-int main(int argc, char **argv) {
-	if (argc < 2) {
-		return No_File_Found; 
-	}
+int main() {
+	// if (argc < 2) {
+	// 	return No_File_Found; 
+	// }
 
 	srand(time(NULL));
 
-	ifstream code(argv[1]);
-	getline(code, s);
+	// ifstream code(argv[1]);
+	// getline(code, s);
 
-	//max number of test cases is 20 but new line counts as a character
-	if (s.length() > 5) {
-		return Wrong_Amount_Of_Test_Cases;
-	}
+	auto var = VariableGenerationBuilder().setName("siema").build();
+	var.printName();
 
-	int amountOfTestCases = stoi(s);
-	if (amountOfTestCases > 20 or amountOfTestCases < 1) {
-		return Wrong_Amount_Of_Test_Cases;
-	}
-
-	while(!code.eof()) {
-		getline(code, s);
-
-		if (s.empty()) continue;
-		if (s.length() > 100) return Line_Too_Long;
-
-		input.push_back(s);
-	}
-
-	s = "";
-	int iterator = 1;
-
-	while (amountOfTestCases--) {
-		auto error = generateTestCase(iterator);
-		iterator++;
-
-		if (error == Invalid_Datatype) {
-			return Invalid_Datatype;
-		} else if (error == Syntax_Error) {
-			return Syntax_Error;
-		}
-	}
-	
 	return 0;
 }
