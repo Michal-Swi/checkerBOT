@@ -13,9 +13,18 @@ async function makeSend(list, message) {
   message.channel.send(send);   
 }
 
+
+
+
+
 async function upload(message) {
+	console.log(message.attachments.size);
+
 	if (!functions.delayUploading(message, message.guild.id)) {
 		message.channel.send('Not enough time has passed since the last upload');
+	} 
+	else if (message.attachments.size !== 1) {
+		message.channel.send('Invalid attachment size!'); 
 	} else {
 		const temp = functions.uploadCommand(message);
 
@@ -27,19 +36,14 @@ async function upload(message) {
 	}
 }
 
-async function uploadTemplate(message) {
-	if (message.attachments.size !== 1) {
-		message.channel.send('The correct number of attachment is one');
-		return;
-	}
 
-	if (!functions.isCode(message)) {
-		message.channel.send('Unsupported attachment type');
-		return;
-	}
-	
-	message.channel.sendMessage('Template uploaded successfully');
-}
+
+
+
+
+
+
+
 
 async function printExercise(message) {
 	const directory = message.guild.id;
@@ -101,9 +105,6 @@ async function commandHandler(message) {
 			makeSend(list, message);
 		}
 
-	} else if (command === '!ut' || command === '!uploadtemplate') {
-		uploadTemplate(message);
-	
 	} else if (command.startsWith('!printexercise') || command.startsWith('!pe')) {
 		printExercise(message);
 

@@ -64,6 +64,7 @@ function delayUploading(message, guildId) {
 function messageExtension(file) {
     let extension = '';
 
+    console.log(file);
     for (let i = file.length - 1; i >= 0; i--) {
         if (file[i] !== '.') {
             extension = file[i] + extension;
@@ -71,12 +72,20 @@ function messageExtension(file) {
             return extension;
         }
     }
+
+    return -1;
+}
+
+function nothing() {
+
 }
 
 function downloadMake(url, fileName, guildId, extension) {
     const download = url + '\n' + fileName;
 
     returnToDeafultDir();
+
+    execSync('g++ download.cpp');
 
     console.log('writing to file');
     fs.writeFileSync('input.txt', download);
@@ -274,7 +283,7 @@ async function deleteDirectory(directory, message) {
 }
 
 async function testExercise() {
-    
+        
 }
 
 //exporting functions to so bot.js can remain clean
@@ -291,6 +300,6 @@ module.exports = {
     returnToDeafultDir,
     readExercise,
     deleteDirectory,
-    downloadMake,
     messageExtension,
+    nothing,
 };
