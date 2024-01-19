@@ -39,6 +39,7 @@ async function upload(message) {
 
 
 
+// Written whithout testing it once, test later!!! 
 async function uploadTests(message) {
 	if (message.attachments.size !== 1) {
 		message.channel.send('Invalid amount of attachments!');
@@ -47,9 +48,22 @@ async function uploadTests(message) {
 	
 	if (message.attachments.first().size > 10000) {
 		message.channel.send('File too big!');
+		return;
 	}
 
+	const name = functions.fileName(message.content);
+	if (!name) {
+		message.channel.send('Invalid file name!');
+		return;
+	}
 
+	const isNameCorrect = functions.specialCharacters(name);
+	if (!isNameCorrect) {
+		message.channel.send('Invalid file name! Consider removing special characters!');
+		return;
+	}
+        
+	const uploadingSuccessful = functions.uploadTests(message, extension, );
 }	
 
 

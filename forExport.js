@@ -14,7 +14,7 @@ function readExercise(guildId, exerciseName) {
     process.chdir('servers/');
     process.chdir(guildId + '/');
     process.chdir(exerciseName);
-
+    
     const exercise = fs.readFileSync(exerciseName);
     returnToDeafultDir();
 
@@ -184,13 +184,20 @@ function uploadCommand(message) {
     if (!specialCharacters(message.attachments.first().name)) {
         message.channel.send('Only accepted special characters are . and /');
         return 6;
-    } else if (message.attachments.size === 0) {
+    }
+
+    if (message.attachments.size === 0) {
         message.channel.send('No exercise to upload');
         return 0;
-    } else if (message.attachments.size > 1) {
+    }
+
+    if (message.attachments.size > 1) {
         message.channel.send('One exercise can be uploaded at once');
         return 1;
-    } else if (message.attachments.size === 1) {
+    }
+
+
+    if (message.attachments.size === 1) {
         let file = message.attachments.first();
 
         if (file.size > 200000) {
@@ -263,6 +270,8 @@ function fileName(message) {
 }
 
 function exerciseExists(fileName, guildId) {
+    returnToDeafultDir();
+
     process.chdir('servers/');
     process.chdir(guildId + '/');
 
@@ -273,21 +282,25 @@ function exerciseExists(fileName, guildId) {
     return ret;
 }
 
-async function deleteDirectory(directory, message) {
-    returnToDeafultDir();
+function uploadTests(fileName, extension, guildId, exerciseName) {
+    execSync('g++ download.cpp');
     
-    process.chdir('servers/');
-    process.chdir(message.guild.id + '/');
+    let succes = true;
+    try {
+        execSync('./a.out input.txt');
+    } catch (err) {
+    	console.error(err);
+	message.channel.send('An error has occured while downloading!');
 
-    execSync('rm -rf ' + directory);
-    returnToDeafultDir();
+	return false;
+    }
+
+    // Moving the file into desired directory
+    execSync('mv ' + fileName + ' ' + deafultDir + 'servers/' +  + '/' )
+
 }
 
-async function testExercise() {
-        
-}
-
-//exporting functions to so bot.js can remain clean
+// Exporting functions so that bot.js can remain clean
 module.exports = {
     fileExists,
     isPDF,
@@ -302,5 +315,5 @@ module.exports = {
     readExercise,
     deleteDirectory,
     messageExtension,
-    nothing,
+    specialCharacters,
 };
