@@ -19,8 +19,11 @@ int main(int argc, char **argv) {
 
     string fileName;
     getline(file, fileName);
+    
+    string fileExtension;
+    getline(file, fileExtension);
 
-    string command = "curl -o " + fileName + ".pdf " + url;
+    string command = "curl -o " + fileName + fileExtension + " " + url;
 
     const char* cCommand = command.c_str();
     system(cCommand);

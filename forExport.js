@@ -106,13 +106,14 @@ function fileExists(path) {
             return true;
         }
 
-        } catch(err) {
+    } catch(err) {
             //file doesnt exist
             console.error(err);
         }
     
         return false;
 }
+
 
 //bot only accepts pdf files
 function isPDF(file) {

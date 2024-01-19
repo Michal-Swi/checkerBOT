@@ -39,7 +39,18 @@ async function upload(message) {
 
 
 
+async function uploadTests(message) {
+	if (message.attachments.size !== 1) {
+		message.channel.send('Invalid amount of attachments!');
+		return;
+	}
+	
+	if (message.attachments.first().size > 10000) {
+		message.channel.send('File too big!');
+	}
 
+
+}	
 
 
 
@@ -110,6 +121,8 @@ async function commandHandler(message) {
 
 	} else if (command.startsWith('!de') || command.startsWith('!deleteexercise')) {
 		deleteExercise(message);
+	} else if (command.startsWith('!ut') || command.startsWith('!uploadtests') {
+		uploadTests(message);
 	}
 }
 
