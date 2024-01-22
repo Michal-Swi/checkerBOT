@@ -1,6 +1,8 @@
 const functions = require('./forExport.js');
 const fs = require('fs');
 
+const deafultDir = fs.readFileSync('deafultdir.txt', 'utf-8').toString();
+
 async function makeSend(list, message) {
    let send = 'Exercises currently uploaded: \n';
 
@@ -38,34 +40,73 @@ async function upload(message) {
 
 
 
+// Checks if attachment meets safety conditions and returns true or false.
+function attachmentChecker(message, size, amount) {
+	// Veryfied guilds bypass the safety conditions.
+	if (functions.isVerified(message.guild.id)) {
+		return true;
+	}
 
-// Written whithout testing it once, test later!!! 
-async function uploadTests(message) {
-	if (message.attachments.size !== 1) {
+	if (message.attachments.size !== amount) {
 		message.channel.send('Invalid amount of attachments!');
-		return;
+		return false;
 	}
-	
-	if (message.attachments.first().size > 10000) {
-		message.channel.send('File too big!');
+
+	// Large files may cause safety issues
+	if (message.attachments.first().size > size) {
+		message.channel.send('File too large!');
+		return false;
+	}
+
+	// Checks if there are any spaces in the name.
+	const name = functions.fileName(message.content);
+
+	if (!name) {
+		message.channel.send('Invalid file name!');
+		return false;
+	}
+
+	// Checks whether the file name contains unwanted special characters.
+	const isNameCorrect = functions.specialCharacters(name);
+
+	if (!isNameCorrect) {
+		message.channel.send('Invalid file name! Consider removing special characters!');
+		return false;
+	}
+
+	// All conditions were met.
+	return true;
+}
+
+
+
+// Uploads manualy written test cases.
+async function uploadTestsCommand(message) {
+	if (!attachmentChecker(message, 10000, 1)) {
 		return;
 	}
 
-	const name = functions.fileName(message.content);
-	if (!name) {
+	// const uploadingSuccessful = functions.uploadTests(message, extension, );
+}	
+
+
+
+
+async function uploadTemplate(message) {
+	if (!attachmentChecker(message, 20000, 1)) {
+		return;
+	}
+
+	// Double check but better safe than sorry!
+	const fileName = functions.fileName(message.content);
+	if (!fileName) {
 		message.channel.send('Invalid file name!');
 		return;
 	}
 
-	const isNameCorrect = functions.specialCharacters(name);
-	if (!isNameCorrect) {
-		message.channel.send('Invalid file name! Consider removing special characters!');
-		return;
-	}
-        
-	const uploadingSuccessful = functions.uploadTests(message, extension, );
-}	
-
+	// Downloading the exercise
+	execSync('curl -o ' + message.attachments.first().name + ' ' + message.attachments.first().url);	
+}
 
 
 
@@ -135,8 +176,10 @@ async function commandHandler(message) {
 
 	} else if (command.startsWith('!de') || command.startsWith('!deleteexercise')) {
 		deleteExercise(message);
-	} else if (command.startsWith('!ut') || command.startsWith('!uploadtests') {
-		uploadTests(message);
+	} else if (command.startsWith('!ut') || command.startsWith('!uploadtests')) {
+		uploadTestsCommand(message);
+	} else if (command.startsWith('!ute') || command.startsWith('!uploadtemplate')) {
+		uploadTemplate(message);
 	}
 }
 

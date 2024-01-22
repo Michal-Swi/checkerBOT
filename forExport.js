@@ -76,10 +76,6 @@ function messageExtension(file) {
     return -1;
 }
 
-function nothing() {
-
-}
-
 function downloadMake(url, fileName, guildId, extension) {
     const download = url + '\n' + fileName;
 
@@ -282,22 +278,20 @@ function exerciseExists(fileName, guildId) {
     return ret;
 }
 
-function uploadTests(fileName, extension, guildId, exerciseName) {
-    execSync('g++ download.cpp');
-    
-    let succes = true;
-    try {
-        execSync('./a.out input.txt');
-    } catch (err) {
-    	console.error(err);
-	message.channel.send('An error has occured while downloading!');
+function deleteDirectory(exercise, message) {
+    returnToDeafultDir();
 
-	return false;
+    process.chdir('servers/');
+    process.chdir(message.guild.id + '/');
+
+    try {
+        execSync('rm -rf ' + exercise);
+    } catch (e) {
+        console.error(e);
+        message.channel.send('Unexpected error: ' + e + ' FATAL');
     }
 
-    // Moving the file into desired directory
-    execSync('mv ' + fileName + ' ' + deafultDir + 'servers/' +  + '/' )
-
+    returnToDeafultDir();
 }
 
 // Exporting functions so that bot.js can remain clean
@@ -313,7 +307,8 @@ module.exports = {
     exerciseExists,
     returnToDeafultDir,
     readExercise,
-    deleteDirectory,
     messageExtension,
     specialCharacters,
+    isVeryfied,
+    deleteDirectory,
 };
