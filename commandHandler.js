@@ -1,5 +1,6 @@
 const functions = require('./forExport.js');
 const fs = require('fs');
+const { execSync } = require('child_process');
 
 const deafultDir = fs.readFileSync('deafultdir.txt', 'utf-8').toString();
 
@@ -43,14 +44,17 @@ async function upload(message) {
 // Checks if attachment meets safety conditions and returns true or false.
 function attachmentChecker(message, size, amount) {
 	// Veryfied guilds bypass the safety conditions.
-	if (functions.isVerified(message.guild.id)) {
+	if (functions.isVeryfied(message.guild.id)) {
 		return true;
 	}
 
+	console.log(message.attachments.size);
 	if (message.attachments.size !== amount) {
 		message.channel.send('Invalid amount of attachments!');
 		return false;
 	}
+
+	console.log(message.attachments.first().size);
 
 	// Large files may cause safety issues
 	if (message.attachments.first().size > size) {
@@ -59,7 +63,7 @@ function attachmentChecker(message, size, amount) {
 	}
 
 	// Checks if there are any spaces in the name.
-	const name = functions.fileName(message.content);
+	const name = functions.fileName(message);
 
 	if (!name) {
 		message.channel.send('Invalid file name!');
@@ -97,15 +101,35 @@ async function uploadTemplate(message) {
 		return;
 	}
 
+	// Template can cause problems while renaming 
+	if (message.attachments.first().name === 'template') {
+		message.channel.send('Invalid attachment name! "template" name is forbidden!');
+		return;
+	}
+
 	// Double check but better safe than sorry!
-	const fileName = functions.fileName(message.content);
-	if (!fileName) {
+	const exerciseName = functions.fileName(message);
+	if (!exerciseName) {
 		message.channel.send('Invalid file name!');
+		return;
+	}
+
+	const executedCorrectly = functions.goToExerciseDirectory(message.guild.id, exerciseName);
+	console.log(executedCorrectly);
+
+	if (!executedCorrectly) {
+		message.channel.send('Exercise doesnt exist!');
+		functions.returnToDeafultDir();
 		return;
 	}
 
 	// Downloading the exercise
 	execSync('curl -o ' + message.attachments.first().name + ' ' + message.attachments.first().url);	
+
+	// Renaming the template name to 'template'.
+	execSync('mv ' + message.attachments.first().name + ' template.cpp');
+
+	functions.returnToDeafultDir();
 }
 
 
@@ -176,10 +200,10 @@ async function commandHandler(message) {
 
 	} else if (command.startsWith('!de') || command.startsWith('!deleteexercise')) {
 		deleteExercise(message);
-	} else if (command.startsWith('!ut') || command.startsWith('!uploadtests')) {
-		uploadTestsCommand(message);
 	} else if (command.startsWith('!ute') || command.startsWith('!uploadtemplate')) {
 		uploadTemplate(message);
+	} else if (command.startsWith('!ut') || command.startsWith('!uploadtestcases')) {
+		uploadTestsCommand(message);
 	}
 }
 

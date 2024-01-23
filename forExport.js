@@ -76,24 +76,6 @@ function messageExtension(file) {
     return -1;
 }
 
-function downloadMake(url, fileName, guildId, extension) {
-    const download = url + '\n' + fileName;
-
-    returnToDeafultDir();
-
-    execSync('g++ download.cpp');
-
-    console.log('writing to file');
-    fs.writeFileSync('input.txt', download);
-    
-    console.log('c++ with input');
-    execSync('./a.out input.txt');
-
-    console.log('moving the file');
-    execSync('mv ' + fileName + extension + ' ' + deafultDir + 'servers/' + guildId + '/' + fileName);
-    returnToDeafultDir();
-}
-
 //cheking whether a server directory already exists
 function fileExists(path) {
     try {
@@ -103,11 +85,11 @@ function fileExists(path) {
         }
 
     } catch(err) {
-            //file doesnt exist
-            console.error(err);
-        }
+        //file doesnt exist
+        console.error(err);
+    }
     
-        return false;
+    return false;
 }
 
 
@@ -294,8 +276,23 @@ function deleteDirectory(exercise, message) {
     returnToDeafultDir();
 }
 
+function goToExerciseDirectory(guildId, exerciseName) {
+    returnToDeafultDir();
+
+    process.chdir('servers/');
+
+    try {
+        process.chdir(guildId + '/' + exerciseName + '/');
+    } catch (e) {
+        return false; // Guild directory doesnt exist
+    }
+
+    return true; // Function executed correctly.
+}
+
 // Exporting functions so that bot.js can remain clean
 module.exports = {
+    goToExerciseDirectory,
     fileExists,
     isPDF,
     uploadExercise,
