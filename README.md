@@ -30,3 +30,9 @@ or
 !deleteexercise [file_name]
 !de [file_name]
 ```
+### For uploading templates for testing
+This command requires one c++ file as the template
+```
+!ute [exercise_name]
+!uploadtemplate [exercise_name]
+```
