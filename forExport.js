@@ -41,9 +41,8 @@ function delayUploading(message, guildId) {
         console.log('Guild is veryfied');
         return true;
     }
-    
+        
     const now = Date.now();
-    
     if (!isNaN(delay[message.author.id])) {
         if ((((now - delay[message.author.id]) / 1000) / 60) > 30) {
             console.log('Delay passed, uploading...');
@@ -95,8 +94,8 @@ function fileExists(path) {
 
 //bot only accepts pdf files
 function isPDF(file) {
-    if (file[file.length - 1] == 'f' && file[file.length - 2] == 'd' 
-        && file[file.length - 3] == 'p' && file[file.length - 4] == '.') {
+    if (file[file.length - 1] === 'f' && file[file.length - 2] === 'd' 
+        && file[file.length - 3] === 'p' && file[file.length - 4] === '.') {
         return true;
     }
     return false;
@@ -160,8 +159,13 @@ function specialCharacters(fileName) {
 //handling !u and !upload command
 function uploadCommand(message) {
     if (!specialCharacters(message.attachments.first().name)) {
-        message.channel.send('Only accepted special characters are . and /');
+        message.channel.send('Only accepted special characters are . and _');
         return 6;
+    }
+
+    if (message.attachments.first().name === 'template') {
+        message.channel.send('The name "template" is forbidden!');
+        return;
     }
 
     if (message.attachments.size === 0) {

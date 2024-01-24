@@ -1,5 +1,5 @@
-const functions = require('./forExport.js');
 const fs = require('fs');
+const functions = require('./forExport.js');
 const { execSync } = require('child_process');
 
 const deafultDir = fs.readFileSync('deafultdir.txt', 'utf-8').toString();
@@ -12,13 +12,9 @@ async function makeSend(list, message) {
     send += list[i]; 
     send += '\n';
   }
-    
+	    
   message.channel.send(send);   
 }
-
-
-
-
 
 async function upload(message) {
 	console.log(message.attachments.size);
@@ -43,11 +39,6 @@ async function upload(message) {
 
 // Checks if attachment meets safety conditions and returns true or false.
 function attachmentChecker(message, size, amount) {
-	// Veryfied guilds bypass the safety conditions.
-	if (functions.isVeryfied(message.guild.id)) {
-		return true;
-	}
-
 	console.log(message.attachments.size);
 	if (message.attachments.size !== amount) {
 		message.channel.send('Invalid amount of attachments!');
@@ -90,7 +81,31 @@ async function uploadTestsCommand(message) {
 		return;
 	}
 
-	// const uploadingSuccessful = functions.uploadTests(message, extension, );
+	if (message.attachments.first().name !== 'input.txt') {
+		message.channel.send('Tests can only be named input.txt');
+		return;
+	}
+
+	// Double check but better safe than sorry!
+	const exerciseName = functions.fileName(message);
+	if (!exerciseName) {
+		message.channel.send('Invalid file name!');
+		return;
+	}
+
+	const executedCorrectly = functions.goToExerciseDirectory(message.guild.id, exerciseName);
+	console.log(executedCorrectly);
+
+	if (!executedCorrectly) {
+		message.channel.send('Exercise doesnt exist!');
+		functions.returnToDeafultDir();
+		return;
+	}
+
+	// Downloading the tests.
+	execSync('curl -o ' + message.attachments.first().name + ' ' + message.attachments.first().url);	
+
+	functions.returnToDeafultDir();
 }	
 
 
@@ -101,8 +116,11 @@ async function uploadTemplate(message) {
 		return;
 	}
 
+	console.log(message.attachments.first());
+	console.log(functions.messageExtension(message.attachments.first().name));
+
 	// Template can cause problems while renaming 
-	if (message.attachments.first().name === 'template') {
+	if (message.attachments.first().name === 'template.cpp') {
 		message.channel.send('Invalid attachment name! "template" name is forbidden!');
 		return;
 	}
@@ -121,6 +139,13 @@ async function uploadTemplate(message) {
 		message.channel.send('Exercise doesnt exist!');
 		functions.returnToDeafultDir();
 		return;
+	}
+
+	// Deleting previous template
+	try {
+		execSync('rm template.cpp');
+	} catch (e) {
+		console.error(e);
 	}
 
 	// Downloading the exercise
@@ -197,7 +222,6 @@ async function commandHandler(message) {
 
 	} else if (command.startsWith('!printexercise') || command.startsWith('!pe')) {
 		printExercise(message);
-
 	} else if (command.startsWith('!de') || command.startsWith('!deleteexercise')) {
 		deleteExercise(message);
 	} else if (command.startsWith('!ute') || command.startsWith('!uploadtemplate')) {
