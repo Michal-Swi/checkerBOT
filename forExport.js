@@ -26,7 +26,7 @@ function isVeryfied(guildId) {
     const guilds = fs.readFileSync('veryfiedGuilds.txt', 'utf-8');
 
     const guildsId = guilds.split('\n').map(String);
-    
+        
     //guild id can go over the number limit I think
     guildId = guildId.toString();
 
@@ -294,8 +294,58 @@ function goToExerciseDirectory(guildId, exerciseName) {
     return true; // Function executed correctly.
 }
 
+// Returns true if makefile is created and false otherwise.
+function createMakeFile() {
+    const input = fs.readFileSync('input.txt', 'utf-8');
+    const inputSorted = input.split('\n').map(String);
+
+    try {
+        execSync('rm makefile');
+    } catch (err) {
+        console.error(err);
+    }
+
+    try {
+        execSync('touch makefile');
+    } catch (err) {
+        console.error(err);
+        return false;
+    }
+
+    let itr = '0';
+    let toFile = ""; 
+
+    for (let i = 0; i < inputSorted.length; i++) {
+
+        if (itr === '21' || itr >= '21') {
+            break;
+        }
+
+        const input = inputSorted[i];
+
+        toFile += 'test' + itr + ':\n';
+        toFile += '\techo "';
+
+        for (let j = 0; j < input.length - 1; j++) {
+            toFile += input[j];
+        }
+
+        toFile += '" | ./a.out\n';
+
+        itr++;
+    }
+
+    try {
+        fs.writeFileSync('makefile', toFile);
+    } catch (err) {
+        console.error(err);
+        return false;
+    }
+}
+
 // Exporting functions so that bot.js can remain clean
 module.exports = {
+    createMakeFile,
     goToExerciseDirectory,
     fileExists,
     isPDF,

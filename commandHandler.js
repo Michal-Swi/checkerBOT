@@ -102,8 +102,17 @@ async function uploadTestsCommand(message) {
 		return;
 	}
 
+	try {
+		execSync('rm input.txt');
+	} catch (e) {
+		console.error(e);
+	}
+
 	// Downloading the tests.
 	execSync('curl -o ' + message.attachments.first().name + ' ' + message.attachments.first().url);	
+	message.channel.send('Tests uploades successfully!');
+
+	functions.createMakeFile();
 
 	functions.returnToDeafultDir();
 }	
