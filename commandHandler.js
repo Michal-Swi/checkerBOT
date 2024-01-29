@@ -112,8 +112,13 @@ async function uploadTestsCommand(message) {
 	execSync('curl -o ' + message.attachments.first().name + ' ' + message.attachments.first().url);	
 	message.channel.send('Tests uploades successfully!');
 
-	functions.createMakeFile();
-
+	const writingToMakefileExecutedCorrectly = functions.createMakeFile();
+	if (!writingToMakefileExecutedCorrectly) {
+		message.channel.send('The tests uploaded successfully, but makefile file was not created, try again.');
+	} else {
+		message.channel.send('Makefile was created successfully!');
+	}
+	
 	functions.returnToDeafultDir();
 }	
 

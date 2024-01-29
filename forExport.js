@@ -294,6 +294,24 @@ function goToExerciseDirectory(guildId, exerciseName) {
     return true; // Function executed correctly.
 }
 
+function isAlpha(character) {
+    return character.toUpperCase() !== character.toLowerCase();
+}
+
+// Returns true if character is allowed.
+function characterIsCorrect(character) {
+    let isCorrect = false;
+    if (!isNaN(character) || isAlpha(character) || character === '!' || character === '_') { isCorrect = true; }
+
+    return isCorrect;
+}
+
+// Does stuff and returns true or false.
+function checkContentsOfTests(tests) {
+    tests.forEach(test => { test.forEach(character => {if (!characterIsCorrect(character)) { return false; }})});
+    return true;
+}
+
 // Returns true if makefile is created and false otherwise.
 function createMakeFile() {
     const input = fs.readFileSync('input.txt', 'utf-8');
@@ -341,6 +359,9 @@ function createMakeFile() {
         console.error(err);
         return false;
     }
+
+    returnToDeafultDir();
+    return true; // The function executed correctly!
 }
 
 // Exporting functions so that bot.js can remain clean
