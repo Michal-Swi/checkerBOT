@@ -77,7 +77,7 @@ function attachmentChecker(message, size, amount) {
 
 // Uploads manualy written test cases.
 async function uploadTestsCommand(message) {
-	if (!attachmentChecker(message, 10000, 1)) {
+	if (!attachmentChecker(message, 1000, 1)) {
 		return;
 	}
 
@@ -92,6 +92,7 @@ async function uploadTestsCommand(message) {
 		message.channel.send('Invalid file name!');
 		return;
 	}
+
 
 	const executedCorrectly = functions.goToExerciseDirectory(message.guild.id, exerciseName);
 	console.log(executedCorrectly);
@@ -110,15 +111,26 @@ async function uploadTestsCommand(message) {
 
 	// Downloading the tests.
 	execSync('curl -o ' + message.attachments.first().name + ' ' + message.attachments.first().url);	
-	message.channel.send('Tests uploades successfully!');
+	message.channel.send('Tests uploaded successfully!');
 
-	const writingToMakefileExecutedCorrectly = functions.createMakeFile();
+	const input = fs.readFileSync('input.txt', 'utf-8');
+  const inputSorted = input.split('\n').map(String);
+	
+	const correctContents = functions.checkContentsOfTests(inputSorted);
+	console.log(correctContents);
+
+	if (correctContents !== true) {
+		message.channel.send('Makefile file was not created correctly! Invalid contents of the input file! Consider removing this character: ' + correctContents);
+		return;
+	}
+
+	const writingToMakefileExecutedCorrectly = functions.createMakeFile(inputSorted);
 	if (!writingToMakefileExecutedCorrectly) {
 		message.channel.send('The tests uploaded successfully, but makefile file was not created, try again.');
 	} else {
 		message.channel.send('Makefile was created successfully!');
 	}
-	
+
 	functions.returnToDeafultDir();
 }	
 
@@ -168,6 +180,20 @@ async function uploadTemplate(message) {
 	// Renaming the template name to 'template'.
 	execSync('mv ' + message.attachments.first().name + ' template.cpp');
 
+	try {
+		execSync('g++ template.cpp');
+	} catch (err) {
+		message.channel.send('The template doesnt compile, remove it');
+		try {
+			execSync('rm template.cpp');
+		} catch (err) {
+			
+		}
+
+		message.channel.send('Template removed');
+		console.error(err);
+	}
+
 	functions.returnToDeafultDir();
 }
 
@@ -206,6 +232,86 @@ async function deleteExercise(message) {
 	message.channel.send('File deleted correctly');
 }
 
+
+
+
+
+async function uploadSolution(message) {
+	if (!attachmentChecker(message, 20000, 1)) {
+		return;
+	}
+
+	// Double check but better safe than sorry!
+	const exerciseName = functions.fileName(message);
+	if (!exerciseName) {
+		message.channel.send('Invalid file name!');
+		return;
+	}
+
+	const executedCorrectly = functions.goToExerciseDirectory(message.guild.id, exerciseName);
+	console.log(executedCorrectly);
+
+	if (!executedCorrectly) {
+		message.channel.send('Exercise doesnt exist!');
+		functions.returnToDeafultDir();
+		return;
+	}
+
+
+
+	// Deleting previous answer
+	try {
+		execSync('rm ' + message.author.name + '.cpp');
+	} catch (e) {
+		console.error(e);
+	}
+
+	try {
+		execSync('curl -o ' + message.author.username + '.cpp ' + message.attachments.first().url);
+	} catch (err) {
+		console.error(err);
+		message.channel.send('FATAL ERROR: FILE WAS NOT UPLOADED');
+		
+		process.exit(5);
+		return;
+	}
+
+	message.channel.send('The solution was uploaded successfully!');
+
+	// Trying to compile the downloaded code
+	try {
+		execSync('g++ ' + message.author.name + '.cpp');
+	} catch (err) {
+		console.error(err);
+
+		message.channel.send('The solution did not compile and returned the following error: ' + err);
+
+		try {
+			execSync('rm ' + message.author.username + '.cpp');
+		} catch (err) {
+			console.error(err);
+			
+			message.channel.send('The file wasnt deleted FATAL ERROR');
+			
+			process.exit(5);
+			return;
+		}
+
+		message.channel.send('File deleted successfully!');
+		return;
+	}
+
+	functions.returnToDeafultDir();
+}
+
+
+
+
+async function () {}
+
+
+
+
 async function commandHandler(message) {
 
 	//ignoring bot messages
@@ -242,6 +348,10 @@ async function commandHandler(message) {
 		uploadTemplate(message);
 	} else if (command.startsWith('!ut') || command.startsWith('!uploadtestcases')) {
 		uploadTestsCommand(message);
+	} else if (command.startsWith('!us') || command.startsWith('!uploadsolution')) {
+		uploadSolution(message);
+	} else if (command.startsWith('!ts') || command.startsWith('!testsolution')) {
+		testSolution(message);
 	}
 }
 

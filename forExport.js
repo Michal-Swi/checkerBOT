@@ -301,22 +301,28 @@ function isAlpha(character) {
 // Returns true if character is allowed.
 function characterIsCorrect(character) {
     let isCorrect = false;
-    if (!isNaN(character) || isAlpha(character) || character === '!' || character === '_') { isCorrect = true; }
+    if (!isNaN(character) || isAlpha(character) || character === '!' || 
+        character === '_' || character === '-') { isCorrect = true; }
 
     return isCorrect;
 }
 
-// Does stuff and returns true or false.
+// Does stuff and returns uwnanted character or true
 function checkContentsOfTests(tests) {
-    tests.forEach(test => { test.forEach(character => {if (!characterIsCorrect(character)) { return false; }})});
+    console.log(tests);
+
+    for (let i = 0; i < tests.length; i++) {
+        for (let j = 0; j < tests[i].length; j++) {
+            console.log(tests[i][j] + ' ' + characterIsCorrect(tests[i][j]));
+            if (!characterIsCorrect(tests[i][j])) { return tests[i][j]; }
+        }
+    }
+
     return true;
 }
 
 // Returns true if makefile is created and false otherwise.
-function createMakeFile() {
-    const input = fs.readFileSync('input.txt', 'utf-8');
-    const inputSorted = input.split('\n').map(String);
-
+function createMakeFile(inputSorted) {
     try {
         execSync('rm makefile');
     } catch (err) {
@@ -364,8 +370,11 @@ function createMakeFile() {
     return true; // The function executed correctly!
 }
 
+function testExercise()
+
 // Exporting functions so that bot.js can remain clean
 module.exports = {
+    checkContentsOfTests,
     createMakeFile,
     goToExerciseDirectory,
     fileExists,
