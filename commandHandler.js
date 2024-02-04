@@ -110,7 +110,13 @@ async function uploadTestsCommand(message) {
 	}
 
 	// Downloading the tests.
-	execSync('curl -o ' + message.attachments.first().name + ' ' + message.attachments.first().url);	
+	try {
+		execSync('curl -o ' + message.attachments.first().name + ' ' + message.attachments.first().url);
+	} catch (err)	{
+		console.error(err);
+		message.channel.send('The file is corrupted. Please try again.');
+	}
+	
 	message.channel.send('Tests uploaded successfully!');
 
 	const input = fs.readFileSync('input.txt', 'utf-8');
@@ -175,7 +181,16 @@ async function uploadTemplate(message) {
 	}
 
 	// Downloading the exercise
-	execSync('curl -o ' + message.attachments.first().name + ' ' + message.attachments.first().url);	
+	try {
+		execSync('curl -o ' + message.attachments.first().name + ' ' + message.attachments.first().url);
+	} catch (err) {
+		console.error(err);
+		message.channel.send('The file is corrupted. Please try again.');
+
+		return;
+	}	
+
+	message.channel.send('The template uploaded correctly!');
 
 	// Renaming the template name to 'template'.
 	execSync('mv ' + message.attachments.first().name + ' template.cpp');
@@ -192,6 +207,23 @@ async function uploadTemplate(message) {
 
 		message.channel.send('Template removed');
 		console.error(err);
+	}
+
+	message.channel.send('The template compiled correctly! Testing...');
+
+	const tested = functions.testExercise(message);
+	if (tested !== 0) {	
+		try {
+			execSync('rm template.cpp');
+		} catch (err) {
+			console.error(err);
+
+			process.exit(5);
+			return;
+		}
+
+		message.channel.send('Template was removed!');
+		return;
 	}
 
 	functions.returnToDeafultDir();
@@ -238,6 +270,7 @@ async function deleteExercise(message) {
 
 async function uploadSolution(message) {
 	if (!attachmentChecker(message, 20000, 1)) {
+		functions.returnToDeafultDir();
 		return;
 	}
 
@@ -245,6 +278,7 @@ async function uploadSolution(message) {
 	const exerciseName = functions.fileName(message);
 	if (!exerciseName) {
 		message.channel.send('Invalid file name!');
+		functions.returnToDeafultDir();
 		return;
 	}
 
@@ -267,12 +301,13 @@ async function uploadSolution(message) {
 	}
 
 	try {
-		execSync('curl -o ' + message.author.username + '.cpp ' + message.attachments.first().url);
+		execSync('curl -o ' + message.author.username + '.cpp ' + message.attachments.first());
 	} catch (err) {
 		console.error(err);
 		message.channel.send('FATAL ERROR: FILE WAS NOT UPLOADED');
 		
 		process.exit(5);
+		functions.returnToDeafultDir();
 		return;
 	}
 
@@ -294,10 +329,12 @@ async function uploadSolution(message) {
 			message.channel.send('The file wasnt deleted FATAL ERROR');
 			
 			process.exit(5);
+			functions.returnToDeafultDir();
 			return;
 		}
 
 		message.channel.send('File deleted successfully!');
+		functions.returnToDeafultDir();		
 		return;
 	}
 
@@ -307,7 +344,9 @@ async function uploadSolution(message) {
 
 
 
-async function () {}
+async function testSolution(message) {
+
+}
 
 
 

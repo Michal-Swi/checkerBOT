@@ -359,6 +359,8 @@ function createMakeFile(inputSorted) {
         itr++;
     }
 
+    execSync('echo "' + itr + '" > amount');
+
     try {
         fs.writeFileSync('makefile', toFile);
     } catch (err) {
@@ -370,10 +372,74 @@ function createMakeFile(inputSorted) {
     return true; // The function executed correctly!
 }
 
-function testExercise()
+async function test(message, command) {
+    const output = execSync(command, function (error, stdout, stderr) {
+        if (stderr !== null) {
+            execSync('touch ' + message.author.username);
+            return 'An error has occured while testing: ' + stderr;
+        }
+        
+        if (error !== null) {
+            console.error('exec error: ' + error);
+            execSync('touch ' + message.author.username);
+            return 2;
+        }
+
+        execSync('echo "' + stdout + '" > ' + message.author.username);
+    });
+}
+
+function testExercise(message) {
+    process.chdir('servers/902197295792148530/Palindromy');
+    
+    try {
+        const amount = fs.readFileSync('amount').toString();
+    } catch (err) {
+        console.error(err);
+
+        message.channel.send('Upload tests before uploading a template!');
+        return 1; 
+    }
+
+    if (isNaN(amount[0])) {
+        message.channel.send('No test to test!');
+        return 1; // No amount.
+    }
+
+    let amountOfTests = amount[0];
+    if (!isNaN(amount[1])) {
+        amountOfTests += amount[1];
+    }
+
+    // Creating the answers file
+    try {
+        execSync('touch answers');
+    } catch (err) {
+        console.error(err);
+
+        message.channel.send('The answers file was not created, try again!');
+        return 1;
+    }
+
+    for (let i = 0; i < amountOfTests; i++) {
+        const answer = test(message, 'make test' + i);
+        setTimeout(() => {}, 2000);
+
+        const signal = 'pgrep -x a.out';
+        if (!signal) {
+            // Good test done
+        }
+    }
+
+    console.log(amount);
+
+    // Zero means success.
+    return 0;
+}
 
 // Exporting functions so that bot.js can remain clean
 module.exports = {
+    testExercise,
     checkContentsOfTests,
     createMakeFile,
     goToExerciseDirectory,

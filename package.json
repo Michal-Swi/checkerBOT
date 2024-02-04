@@ -18,6 +18,7 @@
   "homepage": "https://github.com/Michal-Swi/checkerBOT#readme",
   "dependencies": {
     "child_process": "^1.0.2",
+    "delta-time": "^3.0.1",
     "discord.js": "^12.5.3",
     "file-type": "^18.7.0",
     "fs": "^0.0.1-security",
