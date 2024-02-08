@@ -142,8 +142,15 @@ async function uploadTestsCommand(message) {
 
 
 
-
+let testDelay = new Map();
 async function uploadTemplate(message) {
+	if (testDelay[message.author.id] === true) {
+		message.channel.send('Wait for the previous testing to finish!');
+		return;
+	}
+
+	testDelay[message.author.id] = true;
+
 	if (!attachmentChecker(message, 20000, 1)) {
 		return;
 	}
@@ -154,6 +161,7 @@ async function uploadTemplate(message) {
 	// Template can cause problems while renaming 
 	if (message.attachments.first().name === 'template.cpp') {
 		message.channel.send('Invalid attachment name! "template" name is forbidden!');
+		testDelay[message.author.id] = false;
 		return;
 	}
 
@@ -161,6 +169,7 @@ async function uploadTemplate(message) {
 	const exerciseName = functions.fileName(message);
 	if (!exerciseName) {
 		message.channel.send('Invalid file name!');
+		testDelay[message.author.id] = false;
 		return;
 	}
 
@@ -170,6 +179,7 @@ async function uploadTemplate(message) {
 	if (!executedCorrectly) {
 		message.channel.send('Exercise doesnt exist!');
 		functions.returnToDeafultDir();
+		testDelay[message.author.id] = false;
 		return;
 	}
 
@@ -187,6 +197,7 @@ async function uploadTemplate(message) {
 		console.error(err);
 		message.channel.send('The file is corrupted. Please try again.');
 
+		testDelay[message.author.id] = false;
 		return;
 	}	
 
@@ -219,13 +230,16 @@ async function uploadTemplate(message) {
 			console.error(err);
 
 			process.exit(5);
+			testDelay[message.author.id] = false;
 			return;
 		}
 
 		message.channel.send('Template was removed!');
+		testDelay[message.author.id] = false;
 		return;
 	}
-
+	
+	testDelay[message.author.id] = false;
 	functions.returnToDeafultDir();
 }
 

@@ -373,27 +373,43 @@ function createMakeFile(inputSorted) {
 }
 
 async function test(message, command) {
-    const output = execSync(command, function (error, stdout, stderr) {
+    console.log(command);
+
+    execSync(command, function (error, stdout, stderr) {
+        console.log(stdout);
+
         if (stderr !== null) {
-            execSync('touch ' + message.author.username);
-            return 'An error has occured while testing: ' + stderr;
-        }
-        
-        if (error !== null) {
-            console.error('exec error: ' + error);
-            execSync('touch ' + message.author.username);
-            return 2;
+            execSync('echo "' + stderr + '" > error' + message.author.username);
+            return;
         }
 
-        execSync('echo "' + stdout + '" > ' + message.author.username);
+        if (error !== null) {
+            console.error('exec error: ' + error);
+            execSync('touch error' + message.author.username);
+            return;
+        }
+
+        execSync('touch success' + message.author.username);
+        execSync('echo "' + stdout + '" > success' + message.author.username);
     });
 }
 
-function testExercise(message) {
-    process.chdir('servers/902197295792148530/Palindromy');
-    
+// Waits a certain amount of time.
+function waitForAmount(amount, start) {
+    let timeNow = Date.now();
+
+    while (timeNow - start < amount) {
+        timeNow = Date.now();
+    }
+
+    console.log(amount / 1000 + ' seconds delay has passed!');
+}
+
+function testExercise(message) {    
+    let amount;
+
     try {
-        const amount = fs.readFileSync('amount').toString();
+        amount = fs.readFileSync('amount').toString();
     } catch (err) {
         console.error(err);
 
@@ -401,33 +417,71 @@ function testExercise(message) {
         return 1; 
     }
 
+    console.log('First step');
+
     if (isNaN(amount[0])) {
         message.channel.send('No test to test!');
+        console.log('Chuje buje');
         return 1; // No amount.
     }
 
     let amountOfTests = amount[0];
     if (!isNaN(amount[1])) {
-        amountOfTests += amount[1];
-    }
-
-    // Creating the answers file
-    try {
-        execSync('touch answers');
-    } catch (err) {
-        console.error(err);
-
-        message.channel.send('The answers file was not created, try again!');
-        return 1;
+        amountOfTests = amountOfTests * 10 + amount[1];
     }
 
     for (let i = 0; i < amountOfTests; i++) {
         const answer = test(message, 'make test' + i);
-        setTimeout(() => {}, 2000);
 
-        const signal = 'pgrep -x a.out';
+        waitForAmount(2000, Date.now()); // Starts a two seconds timeout.    
+
+        let signal;
+
+        process.exit(5);
+
+        try {
+            signal = execSync('pgrep -x a.out');
+        } catch (err) {
+            console.error('The test was finished already');
+            signal = false;
+        }
+
         if (!signal) {
             // Good test done
+        } else {
+            // Test was not finished
+            try {
+                execSync('kill ' + signal);
+                message.channel.send('The tests took to long to pass. Killing the process');
+                return 2;
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Handling the error
+        try {
+            const error = execSync('cat error');
+            if (error === null) {
+                message.channel.send('The tests werent tested');
+                return 2;
+            } else {
+                message.channel.send('The tests didnt compile with the following error: ' + error);
+                return 2;
+            }
+
+            return 2;
+        } catch (err) {
+            console.error(err);
+        }
+
+        try {
+            const ans = execSync('cat success' + message.author.username);
+            execSync('echo "' + ans + '" > test' + i);
+            execSync('rm success' + message.author.username);  
+        } catch (err) {
+            message.channel.send('I have no idea why this would ever happen so good luck figuring it out!');
+            return 2;
         }
     }
 
