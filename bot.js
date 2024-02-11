@@ -3,7 +3,7 @@ const functions = require('./forExport.js');
 const commands = require('./commandHandler.js');
 const fs = require('fs');
 
-let token = fs.readFileSync('token.txt', 'utf8');
+const token = fs.readFileSync('token.txt', 'utf8');
 const bot = new Client();
 
 const BOT_TOKEN = token;

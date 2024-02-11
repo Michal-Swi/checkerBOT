@@ -8,7 +8,8 @@ async function makeSend(list, message) {
    let send = 'Exercises currently uploaded: \n';
 
   for (let i = 0; i < list.length; i++) {
-    send += (i + 1) + '. ';
+    // biome-ignore lint/style/useTemplate: 
+		send  += (i + 1) + '. ';
     send += list[i]; 
     send += '\n';
   }
@@ -27,9 +28,9 @@ async function upload(message) {
 	} else {
 		const temp = functions.uploadCommand(message);
 
-		if (temp == 4) {
+		if (temp === 4) {
 			message.channel.send('File uploaded correctly!');
-		} else if (temp == 5) {
+		} else if (temp === 5) {
 			message.channel.send('Such file already exists');
 		}
 	}
@@ -111,7 +112,7 @@ async function uploadTestsCommand(message) {
 
 	// Downloading the tests.
 	try {
-		execSync('curl -o ' + message.attachments.first().name + ' ' + message.attachments.first().url);
+		execSync(`curl -o ${message.attachments.first().name} ${message.attachments.first().url}`);
 	} catch (err)	{
 		console.error(err);
 		message.channel.send('The file is corrupted. Please try again.');
@@ -126,7 +127,7 @@ async function uploadTestsCommand(message) {
 	console.log(correctContents);
 
 	if (correctContents !== true) {
-		message.channel.send('Makefile file was not created correctly! Invalid contents of the input file! Consider removing this character: ' + correctContents);
+		message.channel.send(`Makefile file was not created correctly! Invalid contents of the input file! Consider removing this character: ${correctContents}`);
 		return;
 	}
 
@@ -142,14 +143,24 @@ async function uploadTestsCommand(message) {
 
 
 
-let testDelay = new Map();
+// biome-ignore lint/style/noVar: <the map gets changed outside of this scope>
+var    testDelay = new Map();
+// biome-ignore lint/style/noVar: <the map gets changed outside of this scope>
+var    currentlyTested = new Map(); // Checks if another template for the same exercise isint getting uploaded.
 async function uploadTemplate(message) {
+	const exercise = functions.deletePDF(functions.fileName(message));
+	if (currentlyTested[exercise] === true) {
+		message.channel.send('Wait for the previous testing to finish!');
+		return;
+	}
+
 	if (testDelay[message.author.id] === true) {
 		message.channel.send('Wait for the previous testing to finish!');
 		return;
 	}
 
 	testDelay[message.author.id] = true;
+	currentlyTested[exercise] = true;
 
 	if (!attachmentChecker(message, 20000, 1)) {
 		return;
@@ -162,6 +173,7 @@ async function uploadTemplate(message) {
 	if (message.attachments.first().name === 'template.cpp') {
 		message.channel.send('Invalid attachment name! "template" name is forbidden!');
 		testDelay[message.author.id] = false;
+		currentlyTested[exercise] = false;
 		return;
 	}
 
@@ -170,9 +182,10 @@ async function uploadTemplate(message) {
 	if (!exerciseName) {
 		message.channel.send('Invalid file name!');
 		testDelay[message.author.id] = false;
+		currentlyTested[exercise] = false;
 		return;
 	}
-
+	
 	const executedCorrectly = functions.goToExerciseDirectory(message.guild.id, exerciseName);
 	console.log(executedCorrectly);
 
@@ -180,6 +193,7 @@ async function uploadTemplate(message) {
 		message.channel.send('Exercise doesnt exist!');
 		functions.returnToDeafultDir();
 		testDelay[message.author.id] = false;
+		currentlyTested[exercise] = false;
 		return;
 	}
 
@@ -189,27 +203,36 @@ async function uploadTemplate(message) {
 	} catch (e) {
 		console.error(e);
 	}
-
+	
 	// Downloading the exercise
 	try {
-		execSync('curl -o ' + message.attachments.first().name + ' ' + message.attachments.first().url);
+		execSync(`curl -o template.cpp ${message.attachments.first().url}`);
 	} catch (err) {
 		console.error(err);
 		message.channel.send('The file is corrupted. Please try again.');
 
 		testDelay[message.author.id] = false;
+		currentlyTested[exercise] = false;
 		return;
 	}	
 
 	message.channel.send('The template uploaded correctly!');
 
 	// Renaming the template name to 'template'.
-	execSync('mv ' + message.attachments.first().name + ' template.cpp');
+	// execSync('mv ' + message.attachments.first().name + ' template.cpp');
 
+	console.log('moved');
+
+	execSync('pwd');
+
+	return;
 	try {
 		execSync('g++ template.cpp');
+		message.channel.send('The template compiled successfully!');
 	} catch (err) {
-		message.channel.send('The template doesnt compile, remove it');
+		message.channel.send('The template doesnt compile, removing it');
+		console.error(err);
+
 		try {
 			execSync('rm template.cpp');
 		} catch (err) {
@@ -218,6 +241,7 @@ async function uploadTemplate(message) {
 
 		message.channel.send('Template removed');
 		console.error(err);
+		return;
 	}
 
 	message.channel.send('The template compiled correctly! Testing...');
@@ -231,15 +255,18 @@ async function uploadTemplate(message) {
 
 			process.exit(5);
 			testDelay[message.author.id] = false;
+			currentlyTested[exercise] = false;
 			return;
 		}
 
 		message.channel.send('Template was removed!');
 		testDelay[message.author.id] = false;
+		currentlyTested[exercise] = false;
 		return;
 	}
 	
 	testDelay[message.author.id] = false;
+	currentlyTested[exercise] = false;
 	functions.returnToDeafultDir();
 }
 
@@ -260,7 +287,7 @@ async function printExercise(message) {
 		return;
 	}
 
-	let exercise = '<@' + message.author.id + '> exercise: ' + fileName + '\n';
+	let exercise = `<@${message.author.id}> exercise: ${fileName}\n`;
 	exercise += functions.readExercise(message.guild.id, fileName);
 
 	message.channel.send(exercise);
@@ -309,13 +336,13 @@ async function uploadSolution(message) {
 
 	// Deleting previous answer
 	try {
-		execSync('rm ' + message.author.name + '.cpp');
+		execSync(`rm ${message.author.name}.cpp`);
 	} catch (e) {
 		console.error(e);
 	}
 
 	try {
-		execSync('curl -o ' + message.author.username + '.cpp ' + message.attachments.first());
+		execSync(`curl -o ${message.author.username}.cpp ${message.attachments.first()}`);
 	} catch (err) {
 		console.error(err);
 		message.channel.send('FATAL ERROR: FILE WAS NOT UPLOADED');
@@ -329,14 +356,14 @@ async function uploadSolution(message) {
 
 	// Trying to compile the downloaded code
 	try {
-		execSync('g++ ' + message.author.name + '.cpp');
+		execSync(`g++ ${message.author.name}.cpp`);
 	} catch (err) {
 		console.error(err);
 
-		message.channel.send('The solution did not compile and returned the following error: ' + err);
+		message.channel.send(`The solution did not compile and returned the following error: ${err}`);
 
 		try {
-			execSync('rm ' + message.author.username + '.cpp');
+			execSync(`rm ${message.author.username}.cpp`);
 		} catch (err) {
 			console.error(err);
 			
@@ -373,12 +400,12 @@ async function commandHandler(message) {
 	//ignoring messages without '!' prefix
 	if (!message.content.startsWith('!')) return;
 
-	let command = message.content;
+	const command = message.content;
 	command.toLowerCase();
 
 	//logging command
-	let date = new Date();
-	fs.appendFileSync('savedData.txt', message.author.username + ' ' + command + ' ' + date + '\n', 'UTF-8', {'flags': 'a'});
+	const date = new Date();
+	fs.appendFileSync('savedData.txt', `${message.author.username} ${command} ${date}\n`, 'UTF-8', {'flags': 'a'});
 
 	//main for commands
 	if (command === '!u' || command === '!upload') {

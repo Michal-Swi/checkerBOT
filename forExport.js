@@ -4,7 +4,8 @@ const fs = require('fs');
 const deafultDir = fs.readFileSync('deafultdir.txt', 'utf-8').toString();
 
 //REMINDER make it a db
-let delay = new Map();
+// biome-ignore lint/style/useConst: <it does get reassigned I have no idea what is LSP talking about>
+let  delay = new Map();
 
 function returnToDeafultDir() {
     process.chdir(deafultDir);
@@ -12,7 +13,7 @@ function returnToDeafultDir() {
 
 function readExercise(guildId, exerciseName) {
     process.chdir('servers/');
-    process.chdir(guildId + '/');
+    process.chdir(`${guildId}/`);
     process.chdir(exerciseName);
     
     const exercise = fs.readFileSync(exerciseName);
@@ -28,11 +29,11 @@ function isVeryfied(guildId) {
     const guildsId = guilds.split('\n').map(String);
         
     //guild id can go over the number limit I think
-    guildId = guildId.toString();
+    const newGuildId = guildId.toString();
 
     console.log(guildId, ' ', guildsId, ' ', guildsId.includes(guildId));
 
-    return guildsId.includes(guildId);
+    return guildsId.includes(newGuildId);
 }
 
 //anti - flood
@@ -43,16 +44,17 @@ function delayUploading(message, guildId) {
     }
         
     const now = Date.now();
-    if (!isNaN(delay[message.author.id])) {
+    if (!Number.isNaN(delay[message.author.id])) {
         if ((((now - delay[message.author.id]) / 1000) / 60) > 30) {
             console.log('Delay passed, uploading...');
             delay[message.author.id] = now;
             return true;
-        } else {
-            console.log('Not enough time has passed');
-            console.log('Only', ((now - delay[message.author.id]) / 1000), 'seconds have passed');
-            return false;
         }
+        
+        // Function quits anyway in the if statment
+        console.log('Not enough time has passed');
+        console.log('Only', ((now - delay[message.author.id]) / 1000), 'seconds have passed');
+        return false;
     }
 
     console.log('First exercise uploaded, setting up the delay..., uploading...');
@@ -118,11 +120,11 @@ function uploadExercise(fileUrl, fileName, guildId) {
 
     if (!fileExists(guildId)) {
         console.error("Making guild directory");
-        execSync('mkdir ' + guildId); //making a new server directory 
+        execSync(`mkdir ${guildId}`); //making a new server directory 
     }
 
     console.log("Switching dir to guild directory");
-    process.chdir(guildId + '/'); //go to the server dir
+    process.chdir(`${guildId}/`); //go to the server dir
 
     fileName = deletePDF(fileName);
     if (fileExists(fileName)) {
@@ -132,12 +134,12 @@ function uploadExercise(fileUrl, fileName, guildId) {
     }
 
     console.log("Making exercise directory");
-    execSync('mkdir ' + fileName);
+    execSync(`mkdir ${fileName}`);
 
     console.log('Changing exercise directory to exercise: ', fileName);
-    process.chdir(fileName + '/');
+    process.chdir(`${fileName}/`);
 
-    execSync('echo "' + fileUrl + '" >> ' + fileName);
+    execSync(`echo "${fileUrl}" >> ${fileName}`);
     returnToDeafultDir();
 
     return true; 
@@ -180,7 +182,7 @@ function uploadCommand(message) {
 
 
     if (message.attachments.size === 1) {
-        let file = message.attachments.first();
+        const file = message.attachments.first();
 
         if (file.size > 200000) {
             message.channel.send('File size is too large');
@@ -218,10 +220,10 @@ function listExercises(guildId) {
         returnToDeafultDir();
 
         return list;
-    } else {
-        returnToDeafultDir();
-        return false;
     }
+    
+    returnToDeafultDir();
+    return false;
 }
 
 function isCode(message) {
@@ -255,7 +257,7 @@ function exerciseExists(fileName, guildId) {
     returnToDeafultDir();
 
     process.chdir('servers/');
-    process.chdir(guildId + '/');
+    process.chdir(`${guildId}/`);
 
     const ret = fileExists(fileName);
 
@@ -268,10 +270,10 @@ function deleteDirectory(exercise, message) {
     returnToDeafultDir();
 
     process.chdir('servers/');
-    process.chdir(message.guild.id + '/');
+    process.chdir(`${message.guild.id}/`);
 
     try {
-        execSync('rm -rf ' + exercise);
+        execSync(`rm -rf ${exercise}`);
     } catch (e) {
         console.error(e);
         message.channel.send('Unexpected error: ' + e + ' FATAL');
@@ -375,11 +377,12 @@ function createMakeFile(inputSorted) {
 async function test(message, command) {
     console.log(command);
 
-    execSync(command, function (error, stdout, stderr) {
+    execSync(command, (error, stdout, stderr) => {
         console.log(stdout);
 
         if (stderr !== null) {
-            execSync('echo "' + stderr + '" > error' + message.author.username);
+            execSync(`touch error${message.author.username}`);
+            execSync(`echo "${stderr}" > error${message.author.username}`);
             return;
         }
 
@@ -421,7 +424,7 @@ function testExercise(message) {
 
     if (isNaN(amount[0])) {
         message.channel.send('No test to test!');
-        console.log('Chuje buje');
+        console.log('whatt why');
         return 1; // No amount.
     }
 
@@ -437,7 +440,7 @@ function testExercise(message) {
 
         let signal;
 
-        process.exit(5);
+        return 0;
 
         try {
             signal = execSync('pgrep -x a.out');
@@ -493,6 +496,7 @@ function testExercise(message) {
 
 // Exporting functions so that bot.js can remain clean
 module.exports = {
+    deletePDF,
     testExercise,
     checkContentsOfTests,
     createMakeFile,
